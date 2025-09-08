@@ -1,0 +1,1 @@
+import { NextRequest, NextResponse } from "next/server"; export async function POST(request: NextRequest) { return NextResponse.json({ success: true, message: "Signin successful", user: { email: "test@example.com" }, tokens: { accessToken: "token", refreshToken: "refresh" } }) }

@@ -1,26 +1,381 @@
-@import "tailwindcss";
+/* Font is loaded via Next.js font optimization in layout.tsx */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* =============================================
+   FIXLY - ULTIMATE SOPHISTICATED THEME SYSTEM
+   Tailwind v3 + Glass Morphism + Premium UX
+============================================= */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ========== LIGHT THEME (Clean & Professional) ========== */
+  --background: 0 0% 100%;
+  --background-secondary: 210 40% 98%;
+  --background-tertiary: 210 40% 96%;
+  --surface: 210 40% 95%;
+  --surface-elevated: 210 40% 92%;
+  --surface-overlay: 0 0% 100%;
+  --surface-glass: 210 40% 98%;
+  
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  --accent: 142 76% 36%;
+  --accent-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+  --error: 0 72% 51%;
+  --error-foreground: 0 0% 100%;
+  
+  --text-primary: 222 84% 4.9%;
+  --text-secondary: 215 16% 47%;
+  --text-muted: 215 16% 57%;
+  --text-inverse: 0 0% 100%;
+  
+  --border: 214 32% 91%;
+  --border-subtle: 210 40% 96%;
+  --border-glass: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 221 83% 53%;
+  
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 25% 27%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 84% 4.9%;
+  
+  --radius: 10px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ========== DARK THEME (Fixly's Premium Signature Look) ========== */
+.dark {
+  /* Ultra-premium dark backgrounds */
+  --background: 224 71% 4%;
+  --background-secondary: 220 13% 9%;
+  --background-tertiary: 215 28% 7%;
+  --surface: 217 33% 11%;
+  --surface-elevated: 215 25% 15%;
+  --surface-overlay: 215 25% 18%;
+  --surface-glass: 217 33% 11%;
+  
+  /* Vibrant accent colors */
+  --primary: 213 94% 68%;
+  --primary-foreground: 224 71% 4%;
+  --accent: 142 76% 56%;
+  --accent-foreground: 224 71% 4%;
+  --warning: 38 92% 60%;
+  --warning-foreground: 224 71% 4%;
+  --error: 0 72% 61%;
+  --error-foreground: 0 0% 100%;
+  
+  /* Sophisticated text hierarchy */
+  --text-primary: 210 40% 98%;
+  --text-secondary: 217 33% 64%;
+  --text-muted: 215 20% 45%;
+  --text-inverse: 222 84% 4.9%;
+  
+  /* Subtle borders for depth */
+  --border: 215 28% 17%;
+  --border-subtle: 215 25% 15%;
+  --border-glass: 215 28% 25%;
+  --input: 217 33% 11%;
+  --ring: 213 94% 68%;
+  
+  /* Premium surfaces */
+  --muted: 217 33% 11%;
+  --muted-foreground: 217 33% 64%;
+  --popover: 224 71% 4%;
+  --popover-foreground: 210 40% 98%;
+  --card: 217 33% 11%;
+  --card-foreground: 210 40% 98%;
 }
 
+/* ========== SYSTEM PREFERENCE DARK MODE ========== */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not(.light) {
+    --background: 224 71% 4%;
+    --background-secondary: 220 13% 9%;
+    --background-tertiary: 215 28% 7%;
+    --surface: 217 33% 11%;
+    --surface-elevated: 215 25% 15%;
+    --surface-overlay: 215 25% 18%;
+    --surface-glass: 217 33% 11%;
+    
+    --primary: 213 94% 68%;
+    --primary-foreground: 224 71% 4%;
+    --accent: 142 76% 56%;
+    --accent-foreground: 224 71% 4%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 224 71% 4%;
+    --error: 0 72% 61%;
+    --error-foreground: 0 0% 100%;
+    
+    --text-primary: 210 40% 98%;
+    --text-secondary: 217 33% 64%;
+    --text-muted: 215 20% 45%;
+    --text-inverse: 222 84% 4.9%;
+    
+    --border: 215 28% 17%;
+    --border-subtle: 215 25% 15%;
+    --border-glass: 215 28% 25%;
+    --input: 217 33% 11%;
+    --ring: 213 94% 68%;
+    
+    --muted: 217 33% 11%;
+    --muted-foreground: 217 33% 64%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
+    --card: 217 33% 11%;
+    --card-foreground: 210 40% 98%;
   }
 }
 
+/* ========== BASE STYLES ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  background: hsl(var(--background));
+  color: hsl(var(--text-primary));
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  overflow-x: hidden;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+/* ========== ENHANCED SCROLLBAR ========== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--surface));
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, hsl(var(--border)), hsl(var(--muted-foreground)));
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--accent)));
+  box-shadow: 0 0 6px hsl(var(--primary) / 0.2);
+}
+
+/* ========== SCROLLBAR UTILITIES ========== */
+.scrollbar-hide {
+  /* For Webkit browsers */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Webkit browsers */
+}
+
+/* ========== PREMIUM GLASS MORPHISM SYSTEM ========== */
+.glass {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 8px 32px 0 rgba(31, 38, 135, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 
+    0 25px 50px -12px rgba(31, 38, 135, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 12px 40px 0 rgba(31, 38, 135, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 16px 40px 0 rgba(31, 38, 135, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.dark .glass {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 8px 32px 0 rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.dark .glass-strong {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.dark .glass-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    0 12px 40px 0 rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.dark .glass-card:hover {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 16px 40px 0 rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ========== PREMIUM BUTTON STYLES ========== */
+.btn-glass {
+  @apply relative overflow-hidden backdrop-blur-md border border-white/20 
+         transition-all duration-200 hover:border-white/25;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+}
+
+.btn-glass::before {
+  content: '';
+  @apply absolute inset-0 opacity-0 transition-opacity duration-200;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+}
+
+.btn-glass:hover::before {
+  @apply opacity-60;
+}
+
+/* ========== GRADIENT TEXT EFFECTS ========== */
+.gradient-text {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-text-rainbow {
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)),
+    hsl(var(--accent)),
+    hsl(var(--warning)),
+    hsl(var(--primary))
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbow 3s ease-in-out infinite;
+}
+
+@keyframes rainbow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ========== FOCUS MANAGEMENT ========== */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 
+         focus:ring-offset-background transition-all duration-200;
+}
+
+.focus-ring-accent {
+  @apply focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 
+         focus:ring-offset-background transition-all duration-200;
+}
+
+/* ========== LOADING SHIMMER EFFECT ========== */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ========== PREMIUM SELECTION STYLES ========== */
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--text-primary));
+}
+
+::-moz-selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--text-primary));
+}
+
+/* ========== UTILITY CLASSES ========== */
+.text-gradient {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.border-gradient {
+  border-image: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent))) 1;
+}
+
+.shadow-glow-primary {
+  box-shadow: 0 0 15px hsl(var(--primary) / 0.25), 0 0 30px hsl(var(--primary) / 0.08);
+}
+
+.shadow-glow-accent {
+  box-shadow: 0 0 15px hsl(var(--accent) / 0.25), 0 0 30px hsl(var(--accent) / 0.08);
+}
+
+/* ========== RESPONSIVE DESIGN HELPERS ========== */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+  
+  .glass-card {
+    backdrop-filter: blur(12px);
+  }
+}
+
+@media (min-width: 1920px) {
+  html {
+    font-size: 18px;
+  }
 }
