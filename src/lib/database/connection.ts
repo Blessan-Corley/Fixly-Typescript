@@ -27,26 +27,29 @@ async function connectToDatabase(): Promise<typeof mongoose> {
     }
 
     const opts = {
-      bufferCommands: false, // Disable mongoose buffering
-      maxPoolSize: 10, // Maintain up to 10 socket connections
-      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      family: 4, // Use IPv4, skip trying IPv6
+      bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 10000, // Increase timeout
+      socketTimeoutMS: 45000,
+      family: 4,
       
-      // Security options
-      authMechanism: 'SCRAM-SHA-256',
+      // Remove explicit auth mechanism - let MongoDB Atlas handle it
+      // authMechanism: 'SCRAM-SHA-256',
       
       // Performance options
-      maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
-      compressors: ['zlib'], // Enable compression
+      maxIdleTimeMS: 30000,
+      compressors: ['zlib' as const],
       
-      // Resilience options
+      // Resilience options  
       retryWrites: true,
       retryReads: true,
-      heartbeatFrequencyMS: 10000, // Send heartbeat every 10 seconds
+      heartbeatFrequencyMS: 10000,
       
       // Application name for monitoring
       appName: 'Fixly-App',
+      
+      // Additional connection options for Atlas
+      autoIndex: false, // Don't build indexes
     }
 
     // Create the connection promise
@@ -100,6 +103,10 @@ export async function checkDatabaseHealth(): Promise<{
     const connection = await connectToDatabase()
     const db = connection.connection.db
     
+    if (!db) {
+      throw new Error('Database connection not established')
+    }
+    
     // Ping the database
     const adminDb = db.admin()
     const result = await adminDb.ping()
@@ -140,9 +147,11 @@ export async function initializeIndexes(): Promise<void> {
     await import('./schemas/otp')
     
     // Create indexes
-    await mongoose.connection.db.command({ createIndexes: 'users' })
-    await mongoose.connection.db.command({ createIndexes: 'usersessions' })
-    await mongoose.connection.db.command({ createIndexes: 'otps' })
+    if (mongoose.connection.db) {
+      await mongoose.connection.db.command({ createIndexes: 'users' })
+      await mongoose.connection.db.command({ createIndexes: 'usersessions' })
+      await mongoose.connection.db.command({ createIndexes: 'otps' })
+    }
     
     console.log('✅ Database indexes initialized')
   } catch (error) {
@@ -185,9 +194,11 @@ export async function performMaintenance(): Promise<void> {
     if (process.env.NODE_ENV === 'production') {
       try {
         const db = mongoose.connection.db
-        await db.command({ compact: 'usersessions' })
-        await db.command({ compact: 'otps' })
-        console.log('💾 Collections compacted')
+        if (db) {
+          await db.command({ compact: 'usersessions' })
+          await db.command({ compact: 'otps' })
+          console.log('💾 Collections compacted')
+        }
       } catch (error) {
         console.warn('⚠️ Collection compaction failed (may not be supported):', error)
       }

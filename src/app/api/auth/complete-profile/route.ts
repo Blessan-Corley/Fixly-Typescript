@@ -76,7 +76,6 @@ export async function POST(request: NextRequest) {
         },
         skills: role === 'fixer' ? skills : [],
         metadata: {
-          ...session.user.metadata,
           profileCompleted: true,
           profileCompletedAt: new Date()
         }
@@ -110,9 +109,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Complete profile error:', error)
     
-    if (error.code === 11000) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
       // Duplicate key error
-      const field = Object.keys(error.keyPattern)[0]
+      const mongoError = error as any
+      const field = Object.keys(mongoError.keyPattern)[0]
       return NextResponse.json(
         { error: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists` },
         { status: 409 }

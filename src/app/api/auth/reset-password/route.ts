@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       const decoded = verifyPasswordResetToken(token)
       email = decoded.email
     } catch (error) {
-      return NextResponse.json<ApiResponse>({
+      return NextResponse.json({
         success: false,
         message: 'Invalid or expired reset token'
       }, { status: 400 })
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json<ApiResponse>({
+      return NextResponse.json({
         success: false,
         message: 'Invalid or expired reset token'
       }, { status: 400 })
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     
     await user.save()
 
-    return NextResponse.json<ApiResponse>({
+    return NextResponse.json({
       success: true,
       message: 'Password reset successful. You can now login with your new password.'
     })
@@ -72,14 +72,14 @@ export async function POST(request: NextRequest) {
     console.error('Reset password error:', error)
 
     if (error instanceof z.ZodError) {
-      return NextResponse.json<ApiResponse>({
+      return NextResponse.json({
         success: false,
         message: 'Validation error',
-        error: error.errors[0].message
+        error: error.issues[0].message
       }, { status: 400 })
     }
 
-    return NextResponse.json<ApiResponse>({
+    return NextResponse.json({
       success: false,
       message: 'Internal server error'
     }, { status: 500 })

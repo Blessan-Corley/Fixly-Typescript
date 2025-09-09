@@ -3,6 +3,7 @@ import { verifyRefreshToken, refreshAccessToken, blacklistToken } from '@/lib/au
 import connectToDatabase from '@/lib/database/connection'
 import User from '@/lib/database/schemas/user'
 import { createAuthMiddleware } from '@/lib/auth/middleware'
+import jwt from 'jsonwebtoken'
 
 // Apply rate limiting
 const middleware = createAuthMiddleware({
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the refresh token matches the stored one
-    if (user.metadata?.refreshToken !== refreshToken) {
+    if ((user.metadata as any)?.refreshToken !== refreshToken) {
       return NextResponse.json(
         { error: 'Invalid refresh token' },
         { status: 401 }
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     // Generate new access token
     const { accessToken, expiresIn } = refreshAccessToken(payload, {
-      userId: user._id.toString(),
+      userId: (user._id as any).toString(),
       email: user.email,
       username: user.username,
       role: user.role
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
       expiresIn,
       tokenType: 'Bearer',
       user: {
-        id: user._id.toString(),
+        id: (user._id as any).toString(),
         email: user.email,
         name: user.name,
         username: user.username,
@@ -105,14 +106,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Token refresh error:', error)
     
-    if (error.name === 'JsonWebTokenError') {
+    if (error instanceof Error && error.name === 'JsonWebTokenError') {
       return NextResponse.json(
         { error: 'Invalid refresh token format' },
         { status: 401 }
       )
     }
     
-    if (error.name === 'TokenExpiredError') {
+    if (error instanceof Error && error.name === 'TokenExpiredError') {
       return NextResponse.json(
         { error: 'Refresh token has expired' },
         { status: 401 }
@@ -136,19 +137,19 @@ export async function DELETE(request: NextRequest) {
     // Blacklist access token if provided
     if (accessToken) {
       try {
-        const decoded = require('jsonwebtoken').decode(accessToken)
+        const decoded = jwt.decode(accessToken) as any
         if (decoded?.jti) {
           promises.push(blacklistToken(decoded.jti, decoded.exp - Math.floor(Date.now() / 1000)))
         }
       } catch (error) {
-        console.warn('Error blacklisting access token:', error.message)
+        console.warn('Error blacklisting access token:', error instanceof Error ? error.message : 'Unknown error')
       }
     }
 
     // Blacklist refresh token if provided
     if (refreshToken) {
       try {
-        const decoded = require('jsonwebtoken').decode(refreshToken)
+        const decoded = jwt.decode(refreshToken) as any
         if (decoded?.jti) {
           promises.push(blacklistToken(decoded.jti, decoded.exp - Math.floor(Date.now() / 1000)))
         }
@@ -162,7 +163,7 @@ export async function DELETE(request: NextRequest) {
           })
         }
       } catch (error) {
-        console.warn('Error processing refresh token:', error.message)
+        console.warn('Error processing refresh token:', error instanceof Error ? error.message : 'Unknown error')
       }
     }
 

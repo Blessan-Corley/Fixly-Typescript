@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken, JWTPayload } from '@/lib/auth/jwt'
+import { verifyToken } from '@/lib/auth/jwt'
+import { JWTPayload } from '@/types'
 import RedisService from '@/lib/redis/client'
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -33,7 +34,7 @@ function extractBearerToken(request: NextRequest): string | null {
 function getClientIdentifier(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for')
   const realIp = request.headers.get('x-real-ip')
-  const ip = forwarded ? forwarded.split(',')[0] : realIp || request.ip || 'unknown'
+  const ip = forwarded ? forwarded.split(',')[0] : realIp || 'unknown'
   return ip
 }
 

@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { Modal, ConfirmModal } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast-provider'
 import { GoogleMapsLocationPicker } from '@/components/ui/google-maps'
-import { SKILLS, SKILL_CATEGORIES, searchSkills, getSkillsByCategory } from '@/data/services-and-locations'
+import { SKILLS, SKILL_CATEGORIES, searchSkills, getSkillsByCategory } from '@/data/skills'
 import { useGoogleAuth } from '@/hooks/useGoogleAuth'
 
 export default function SignUpPage() {
@@ -123,12 +123,13 @@ export default function SignUpPage() {
     let filteredSkills = SKILLS
     
     if (selectedCategory !== 'all') {
-      filteredSkills = getSkillsByCategory(selectedCategory)
+      filteredSkills = SKILLS.filter(skill => skill.category === selectedCategory)
     }
     
     if (skillsSearch.trim()) {
-      filteredSkills = searchSkills(skillsSearch).filter(skill => 
-        selectedCategory === 'all' || skill.category === selectedCategory
+      filteredSkills = SKILLS.filter(skill => 
+        skill.name.toLowerCase().includes(skillsSearch.toLowerCase()) &&
+        (selectedCategory === 'all' || skill.category === selectedCategory)
       )
     }
     
@@ -1170,11 +1171,6 @@ export default function SignUpPage() {
                           <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
                             {skill.category}
                           </span>
-                          {skill.averageRate && (
-                            <span className="text-xs text-text-muted">
-                              ₹{skill.averageRate.min}-{skill.averageRate.max}/hr
-                            </span>
-                          )}
                         </div>
                       </motion.button>
                     ))}

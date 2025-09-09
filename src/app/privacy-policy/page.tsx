@@ -1,9 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Shield, Eye, Cookie, Database, Lock, Users, AlertTriangle, Mail, Calendar, ArrowLeft } from 'lucide-react'
+import { Shield, Eye, Cookie, Database, Lock, Users, AlertTriangle, Mail, Calendar, ArrowLeft, Loader2 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import PageLayout from '@/components/layout/page-layout'
 
 const Section = ({ icon: Icon, title, children, delay = 0 }: {
@@ -29,7 +29,7 @@ const Section = ({ icon: Icon, title, children, delay = 0 }: {
   </motion.div>
 )
 
-export default function PrivacyPolicyPage() {
+function PrivacyPolicyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [returnUrl, setReturnUrl] = useState('')
@@ -201,5 +201,22 @@ export default function PrivacyPolicyPage() {
         </div>
       </section>
     </PageLayout>
+  )
+}
+
+export default function PrivacyPolicyPage() {
+  return (
+    <Suspense fallback={
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-text-secondary">Loading Privacy Policy...</p>
+          </div>
+        </div>
+      </PageLayout>
+    }>
+      <PrivacyPolicyContent />
+    </Suspense>
   )
 }

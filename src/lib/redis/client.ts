@@ -1,11 +1,122 @@
 import { createClient } from 'redis'
+import { Redis } from '@upstash/redis'
 
-// Redis client for caching and session management
+// Redis client types
+interface RedisClient {
+  isReady?: boolean
+  get(key: string): Promise<string | null>
+  set(key: string, value: string): Promise<any>
+  setex(key: string, seconds: number, value: string): Promise<any>
+  del(key: string): Promise<number>
+  incr(key: string): Promise<number>
+  expire(key: string, seconds: number): Promise<boolean>
+  ttl(key: string): Promise<number>
+  ping(): Promise<string | 'PONG'>
+  quit?(): Promise<void>
+}
+
+// Redis client for caching and session management  
 let client: any = null
+let upstashClient: Redis | null = null
 let isConnecting = false
-let connectionPromise: Promise<any> | null = null
+let connectionPromise: Promise<RedisClient> | null = null
+let useUpstash = false
 
-export async function getRedisClient() {
+// Wrapper class to unify both Redis clients
+class UnifiedRedisClient implements RedisClient {
+  private upstashClient?: Redis
+  private standardClient?: any
+  private isUpstash: boolean
+
+  constructor(upstashClient?: Redis, standardClient?: any) {
+    this.upstashClient = upstashClient
+    this.standardClient = standardClient
+    this.isUpstash = !!upstashClient
+  }
+
+  get isReady(): boolean {
+    if (this.isUpstash) {
+      return !!this.upstashClient
+    }
+    return this.standardClient?.isReady || false
+  }
+
+  async get(key: string): Promise<string | null> {
+    if (this.isUpstash) {
+      const result = await this.upstashClient!.get(key)
+      // Upstash might return parsed JSON objects, we need strings
+      if (result === null || result === undefined) {
+        return null
+      }
+      // If it's already a string, return it
+      if (typeof result === 'string') {
+        return result
+      }
+      // If it's an object, it means Upstash parsed our JSON string, so we need to stringify it back
+      return JSON.stringify(result)
+    }
+    return await this.standardClient!.get(key)
+  }
+
+  async set(key: string, value: string): Promise<any> {
+    if (this.isUpstash) {
+      return await this.upstashClient!.set(key, value)
+    }
+    return await this.standardClient!.set(key, value)
+  }
+
+  async setex(key: string, seconds: number, value: string): Promise<any> {
+    if (this.isUpstash) {
+      return await this.upstashClient!.setex(key, seconds, value)
+    }
+    return await this.standardClient!.setEx(key, seconds, value)
+  }
+
+  async del(key: string): Promise<number> {
+    if (this.isUpstash) {
+      return await this.upstashClient!.del(key)
+    }
+    return await this.standardClient!.del(key)
+  }
+
+  async incr(key: string): Promise<number> {
+    if (this.isUpstash) {
+      return await this.upstashClient!.incr(key)
+    }
+    return await this.standardClient!.incr(key)
+  }
+
+  async expire(key: string, seconds: number): Promise<boolean> {
+    if (this.isUpstash) {
+      const result = await this.upstashClient!.expire(key, seconds)
+      return result === 1
+    }
+    return await this.standardClient!.expire(key, seconds)
+  }
+
+  async ttl(key: string): Promise<number> {
+    if (this.isUpstash) {
+      return await this.upstashClient!.ttl(key)
+    }
+    return await this.standardClient!.ttl(key)
+  }
+
+  async ping(): Promise<string | 'PONG'> {
+    if (this.isUpstash) {
+      return await this.upstashClient!.ping()
+    }
+    return await this.standardClient!.ping()
+  }
+
+  async quit(): Promise<void> {
+    if (!this.isUpstash && this.standardClient) {
+      await this.standardClient.quit()
+    }
+    // Upstash REST API doesn't need explicit quit
+  }
+}
+
+export async function getRedisClient(): Promise<RedisClient> {
   if (client && client.isReady) {
     return client
   }
@@ -18,6 +129,31 @@ export async function getRedisClient() {
   
   connectionPromise = new Promise(async (resolve, reject) => {
     try {
+      // Try Upstash REST API first (more reliable for serverless)
+      if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+        try {
+          upstashClient = new Redis({
+            url: process.env.UPSTASH_REDIS_REST_URL,
+            token: process.env.UPSTASH_REDIS_REST_TOKEN,
+          })
+          
+          // Test the connection
+          await upstashClient.ping()
+          console.log('✅ Connected to Redis via Upstash REST API')
+          
+          const unifiedClient = new UnifiedRedisClient(upstashClient)
+          client = unifiedClient
+          useUpstash = true
+          isConnecting = false
+          resolve(unifiedClient)
+          return
+        } catch (error) {
+          console.warn('⚠️ Upstash REST API failed:', error instanceof Error ? error.message : 'Unknown error')
+          console.log('🔄 Trying standard Redis connection...')
+        }
+      }
+
+      // Fallback to standard Redis
       if (client) {
         try {
           await client.quit()
@@ -26,45 +162,54 @@ export async function getRedisClient() {
         }
       }
 
-      client = createClient({
-        url: process.env.REDIS_URL || 'redis://localhost:6379',
+      const redisUrl = process.env.REDIS_URL
+      
+      if (!redisUrl) {
+        throw new Error('No Redis URL configured')
+      }
+
+      const standardClient = createClient({
+        url: redisUrl,
         socket: {
-          reconnectStrategy: (retries) => {
-            if (retries > 10) {
-              console.log('Redis reconnection attempts exceeded, disabling Redis')
-              return false // Stop reconnecting after 10 attempts
+          reconnectStrategy: (retries: number) => {
+            if (retries > 3) {
+              console.log('Standard Redis reconnection attempts exceeded')
+              return false
             }
-            return Math.min(retries * 100, 3000) // Exponential backoff up to 3s
+            return Math.min(retries * 1000, 3000)
           },
-          connectTimeout: 10000, // 10 second connect timeout
-          lazyConnect: true
+          connectTimeout: 10000
         }
-      })
+      } as any)
 
-      client.on('error', (err: Error) => {
+      standardClient.on('error', (err: Error) => {
         console.warn('Redis connection error:', err.message)
-        // Don't log full error details to reduce noise
       })
 
-      client.on('connect', () => {
-        console.log('Connected to Redis')
+      standardClient.on('connect', () => {
+        console.log('✅ Connected to Redis (Standard)')
       })
 
-      client.on('ready', () => {
-        console.log('Redis client ready')
+      standardClient.on('ready', () => {
+        console.log('✅ Redis client ready')
         isConnecting = false
       })
 
-      client.on('end', () => {
+      standardClient.on('end', () => {
         console.log('Redis connection ended')
         client = null
         isConnecting = false
       })
 
-      await client.connect()
-      resolve(client)
+      await standardClient.connect()
+      
+      const unifiedClient = new UnifiedRedisClient(undefined, standardClient)
+      client = unifiedClient
+      useUpstash = false
+      resolve(unifiedClient)
     } catch (error) {
-      console.warn('Failed to connect to Redis:', error instanceof Error ? error.message : 'Unknown error')
+      console.error('❌ All Redis connection attempts failed:', error instanceof Error ? error.message : 'Unknown error')
+      
       client = null
       isConnecting = false
       connectionPromise = null
@@ -77,10 +222,10 @@ export async function getRedisClient() {
 
 // Helper functions for common Redis operations
 export class RedisService {
-  private static client: any = null
+  private static client: RedisClient | null = null
   private static isRedisAvailable = true
 
-  static async getClient() {
+  static async getClient(): Promise<RedisClient> {
     if (!RedisService.isRedisAvailable) {
       throw new Error('Redis is not available')
     }
@@ -113,7 +258,7 @@ export class RedisService {
       async () => {
         const client = await RedisService.getClient()
         const key = `otp:${email}`
-        await client.setEx(key, expiryMinutes * 60, otp)
+        await client.setex(key, expiryMinutes * 60, otp)
       },
       () => {
         // Fallback: Store in memory (note: will be lost on server restart)
@@ -190,7 +335,21 @@ export class RedisService {
       async () => {
         const client = await RedisService.getClient()
         const key = `session:${sessionId}`
-        await client.setEx(key, expiryHours * 60 * 60, JSON.stringify(data))
+        
+        // Ensure data is properly serialized
+        let serializedData: string
+        try {
+          serializedData = JSON.stringify(data)
+          if (serializedData === undefined || serializedData === '[object Object]') {
+            throw new Error('Invalid object serialization')
+          }
+        } catch (error) {
+          console.error('Failed to serialize session data:', error, 'Data:', data)
+          throw error
+        }
+        
+        await client.setex(key, expiryHours * 60 * 60, serializedData)
+        console.log(`Session stored: ${key}`)
       },
       () => {
         console.warn('Redis unavailable - session caching disabled')
@@ -204,7 +363,14 @@ export class RedisService {
         const client = await RedisService.getClient()
         const key = `session:${sessionId}`
         const data = await client.get(key)
-        return data ? JSON.parse(data) : null
+        if (!data) return null
+        
+        try {
+          return JSON.parse(data)
+        } catch (error) {
+          console.warn('Invalid JSON in Redis session data:', error instanceof Error ? error.message : 'Unknown error')
+          return null
+        }
       },
       () => {
         console.warn('Redis unavailable - session cache miss')
@@ -232,7 +398,7 @@ export class RedisService {
       async () => {
         const client = await RedisService.getClient()
         const key = `verified:${email}`
-        await client.setEx(key, expiryHours * 60 * 60, 'true')
+        await client.setex(key, expiryHours * 60 * 60, 'true')
       },
       () => {
         console.warn('Redis unavailable - email verification status not cached')
@@ -266,7 +432,7 @@ export class RedisService {
           data,
           timestamp: new Date().toISOString()
         }
-        await client.setEx(key, expiryHours * 60 * 60, JSON.stringify(progressData))
+        await client.setex(key, expiryHours * 60 * 60, JSON.stringify(progressData))
       },
       () => {
         console.warn('Redis unavailable - signup progress not cached')
@@ -280,7 +446,14 @@ export class RedisService {
         const client = await RedisService.getClient()
         const key = `signup:${email}`
         const result = await client.get(key)
-        return result ? JSON.parse(result) : null
+        if (!result) return null
+        
+        try {
+          return JSON.parse(result)
+        } catch (error) {
+          console.warn('Invalid JSON in Redis signup progress data:', error instanceof Error ? error.message : 'Unknown error')
+          return null
+        }
       },
       () => {
         console.warn('Redis unavailable - signup progress cache miss')
@@ -316,7 +489,7 @@ export class RedisService {
   // Cleanup utility
   static async close() {
     try {
-      if (RedisService.client) {
+      if (RedisService.client && typeof RedisService.client.quit === 'function') {
         await RedisService.client.quit()
         RedisService.client = null
         client = null

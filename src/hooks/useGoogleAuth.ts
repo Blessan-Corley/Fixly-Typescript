@@ -36,7 +36,7 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
   }, [])
 
   const signInWithGoogle = useCallback(async (options: GoogleAuthOptions) => {
-    const { role, onSuccess, onError, callbackUrl = '/auth/complete-profile' } = options
+    const { role, onSuccess, onError, callbackUrl = '/auth/signup' } = options
     
     setIsLoading(true)
     

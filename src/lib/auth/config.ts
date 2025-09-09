@@ -13,7 +13,7 @@ const client = new MongoClient(process.env.MONGODB_URI!)
 
 export const authOptions: NextAuthOptions = {
   // Use MongoDB adapter for session storage
-  adapter: MongoDBAdapter(client),
+  adapter: MongoDBAdapter(client) as any,
   
   providers: [
     // Google OAuth Provider
@@ -48,32 +48,38 @@ export const authOptions: NextAuthOptions = {
           
           // Find user by email or username
           const user = await User.findByEmailOrUsername(credentials.identifier)
-            .select('+passwordHash +metadata')
           
           if (!user) {
             throw new Error('Invalid credentials')
           }
           
+          // Get user with password hash for verification
+          const userWithPassword = await User.findById(user._id).select('+passwordHash +metadata')
+          
+          if (!userWithPassword) {
+            throw new Error('Invalid credentials')
+          }
+          
           // Check if account is locked
-          if (user.isAccountLocked()) {
+          if (userWithPassword.isAccountLocked()) {
             throw new Error('Account is temporarily locked due to too many failed login attempts')
           }
           
           // Verify password
-          const isValidPassword = await user.comparePassword(credentials.password)
+          const isValidPassword = await userWithPassword.comparePassword(credentials.password)
           
           if (!isValidPassword) {
             // Increment login attempts
-            await user.incLoginAttempts()
+            await userWithPassword.incLoginAttempts()
             throw new Error('Invalid credentials')
           }
           
           // Reset login attempts on successful login
-          await user.resetLoginAttempts()
+          await userWithPassword.resetLoginAttempts()
           
           // Return user object for NextAuth
           return {
-            id: user._id.toString(),
+            id: (user._id as any).toString(),
             email: user.email,
             name: user.name,
             image: user.avatar,
@@ -189,7 +195,7 @@ export const authOptions: NextAuthOptions = {
             })
             
             await newUser.save()
-            user.id = newUser._id.toString()
+            user.id = (newUser._id as any).toString()
             user.role = newUser.role
             user.username = newUser.username
             user.emailVerified = googleProfile.verified_email || false
@@ -201,7 +207,7 @@ export const authOptions: NextAuthOptions = {
             existingUser.metadata.lastLoginAt = new Date()
             await existingUser.save()
             
-            user.id = existingUser._id.toString()
+            user.id = (existingUser._id as any).toString()
             user.role = existingUser.role
             user.username = existingUser.username
             user.emailVerified = existingUser.metadata?.emailVerified || false
@@ -230,10 +236,9 @@ export const authOptions: NextAuthOptions = {
   
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
     error: '/auth/error',
     verifyRequest: '/auth/verify-request',
-    newUser: '/auth/complete-profile' // Redirect new users to complete profile
+    newUser: '/auth/age-verification' // Redirect new users to age verification
   },
   
   events: {

@@ -105,7 +105,7 @@ const DynamicHeader = () => {
                 Sign In
               </motion.button>
             </Link>
-            <Link href="/auth/choose-role">
+            <Link href="/auth/signup">
               <motion.button
                 className="btn-glass px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg hover:shadow-glow-primary transition-all"
                 whileHover={{ scale: 1.02, y: -1 }}
@@ -163,7 +163,7 @@ const DynamicHeader = () => {
                     Sign In
                   </motion.button>
                 </Link>
-                <Link href="/auth/choose-role">
+                <Link href="/auth/signup">
                   <motion.button 
                     className="px-4 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg"
                     whileHover={{ scale: 1.02 }}

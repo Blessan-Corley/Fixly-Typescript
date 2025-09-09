@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         })
       }
     } catch (redisError) {
-      console.warn('Redis cache unavailable, checking database:', redisError.message)
+      console.warn('Redis cache unavailable, checking database:', redisError instanceof Error ? redisError.message : 'Unknown error')
     }
 
     // If not in cache, check database
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
           24 * 7 // Cache for 1 week
         )
       } catch (redisError) {
-        console.warn('Failed to cache verification status:', redisError.message)
+        console.warn('Failed to cache verification status:', redisError instanceof Error ? redisError.message : 'Unknown error')
       }
     }
 

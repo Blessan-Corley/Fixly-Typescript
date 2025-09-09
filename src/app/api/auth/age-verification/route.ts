@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
         24 * 7 // Cache for 1 week
       )
     } catch (redisError) {
-      console.warn('Redis cache failed, continuing without cache:', redisError.message)
+      console.warn('Redis cache failed, continuing without cache:', redisError instanceof Error ? redisError.message : 'Unknown error')
     }
 
     return NextResponse.json({
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Age verification error:', error)
     
-    if (error.name === 'ValidationError') {
+    if (error instanceof Error && error.name === 'ValidationError') {
       return NextResponse.json(
         { error: 'Invalid data provided' },
         { status: 400 }

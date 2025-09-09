@@ -20,7 +20,7 @@ let transporter: nodemailer.Transporter | null = null
 
 function getTransporter() {
   if (!transporter) {
-    transporter = nodemailer.createTransporter(EMAIL_CONFIG)
+    transporter = nodemailer.createTransport(EMAIL_CONFIG)
   }
   return transporter
 }
@@ -364,7 +364,7 @@ class EmailQueue {
       if (!emailData) break
       
       try {
-        await sendEmail(emailData)
+        await sendEmail(emailData as any)
         // Small delay to avoid overwhelming SMTP server
         await new Promise(resolve => setTimeout(resolve, 100))
       } catch (error) {

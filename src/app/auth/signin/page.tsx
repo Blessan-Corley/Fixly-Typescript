@@ -2,21 +2,21 @@
 
 import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Chrome, Loader2, AlertCircle } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn, getSession } from 'next-auth/react'
 import { useToast } from '@/components/ui/toast-provider'
 import { useGoogleAuth } from '@/hooks/useGoogleAuth'
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { addToast } = useToast()
   const { signInWithGoogle, isLoading: googleLoading } = useGoogleAuth()
   
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
+  // Auto-remember users for 7 days (no checkbox needed)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formData, setFormData] = useState({
@@ -230,16 +230,7 @@ export default function SignInPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-border-subtle text-primary focus:ring-primary focus:ring-offset-0"
-                />
-                <span className="ml-2 text-sm text-text-secondary">Remember me</span>
-              </label>
+            <div className="flex items-center justify-end">
               <Link href="/auth/forgot-password" className="text-sm text-primary hover:text-primary-600 transition-colors">
                 Forgot password?
               </Link>
@@ -319,5 +310,24 @@ export default function SignInPage() {
         </div>
       </motion.div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center p-6">
+        <div className="w-full max-w-md">
+          <div className="glass-card p-8 rounded-2xl shadow-2xl">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-text-secondary">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SignInForm />
+    </Suspense>
   )
 }

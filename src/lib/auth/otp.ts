@@ -1,5 +1,6 @@
 import crypto from 'crypto'
-import { OTPType } from '@/types'
+
+type OTPType = 'signup' | 'reset'
 
 // Generate a secure 6-digit OTP
 export function generateOTP(): string {
@@ -239,7 +240,7 @@ export function hashToken(token: string, salt?: string): string {
 
 // Time-based OTP (TOTP) utilities for future 2FA implementation
 export function generateTOTPSecret(): string {
-  return crypto.randomBytes(20).toString('base32')
+  return crypto.randomBytes(20).toString('hex')
 }
 
 // OTP cleanup job (to be called periodically)

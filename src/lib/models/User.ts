@@ -1,17 +1,46 @@
 import mongoose, { Document, Schema, Model } from 'mongoose'
 import bcryptjs from 'bcryptjs'
-import { User, Location, EntityMetadata } from '@/types'
+import type { User } from '@/types'
+import { LocationData } from '@/types'
 
-// Interface for the User document
-export interface IUser extends Omit<User, '_id'>, Document {
+// Interface for the User document (modified to match the Mongoose schema)
+interface IUserSchema extends Document {
+  name: string
+  email: string
+  password?: string
+  phone?: string
+  role: 'hirer' | 'fixer'
+  profilePicture?: string
+  isVerified: boolean
+  emailVerified: boolean
+  phoneVerified: boolean
+  location?: Location
+  
+  // Google OAuth fields
+  googleId?: string
+  
+  // Security and audit fields
+  lastActiveAt: Date
+  loginAttempts: number
+  lockUntil?: Date
+  passwordResetToken?: string
+  passwordResetExpires?: Date
+  emailVerificationToken?: string
+  emailVerificationExpires?: Date
+  
+  // Metadata
+  metadata?: any
+}
+
+export interface IUser extends IUserSchema {
   comparePassword(candidatePassword: string): Promise<boolean>
   updateLastActive(): Promise<void>
   addSearchKeyword(keyword: string): Promise<void>
-  metadata: EntityMetadata
+  metadata?: any
 }
 
 // Location schema
-const LocationSchema = new Schema<Location>({
+const LocationSchema = new Schema({
   address: { type: String, required: true },
   coordinates: {
     type: [Number], // [longitude, latitude]
@@ -35,7 +64,7 @@ const LocationSchema = new Schema<Location>({
 LocationSchema.index({ coordinates: '2dsphere' })
 
 // Metadata schema for tracking entity lifecycle
-const MetadataSchema = new Schema<EntityMetadata>({
+const MetadataSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   createdBy: { type: String },
@@ -100,11 +129,11 @@ const UserSchema = new Schema<IUser>({
   timestamps: true,
   toJSON: {
     transform: function(doc, ret) {
-      delete ret.password
-      delete ret.passwordResetToken
-      delete ret.emailVerificationToken
-      delete ret.loginAttempts
-      delete ret.lockUntil
+      delete (ret as any).password
+      delete (ret as any).passwordResetToken
+      delete (ret as any).emailVerificationToken
+      delete (ret as any).loginAttempts
+      delete (ret as any).lockUntil
       return ret
     }
   }
@@ -143,8 +172,8 @@ UserSchema.pre('save', async function(next) {
   const keywords = new Set<string>()
   if (this.name) keywords.add(this.name.toLowerCase())
   if (this.email) keywords.add(this.email.toLowerCase())
-  if (this.location?.city) keywords.add(this.location.city.toLowerCase())
-  if (this.location?.state) keywords.add(this.location.state.toLowerCase())
+  if ((this.location as any)?.city) keywords.add((this.location as any).city.toLowerCase())
+  if ((this.location as any)?.state) keywords.add((this.location as any).state.toLowerCase())
   
   this.metadata.searchKeywords = Array.from(keywords)
   

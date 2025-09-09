@@ -146,7 +146,7 @@ async function isTokenBlacklisted(jti: string): Promise<boolean> {
     const isBlacklisted = await client.get(`blacklist:${jti}`)
     return isBlacklisted === 'true'
   } catch (error) {
-    console.warn('Redis unavailable, using in-memory blacklist:', error.message)
+    console.warn('Redis unavailable, using in-memory blacklist:', error instanceof Error ? error.message : 'Unknown error')
     return blacklistedTokens.has(jti)
   }
 }
@@ -157,13 +157,13 @@ export async function blacklistToken(jti: string, expirySeconds?: number): Promi
     const client = await RedisService.getClient()
     
     if (expirySeconds) {
-      await client.setEx(`blacklist:${jti}`, expirySeconds, 'true')
+      await client.setex(`blacklist:${jti}`, expirySeconds, 'true')
     } else {
       // Default to 7 days for blacklisted tokens
-      await client.setEx(`blacklist:${jti}`, 7 * 24 * 60 * 60, 'true')
+      await client.setex(`blacklist:${jti}`, 7 * 24 * 60 * 60, 'true')
     }
   } catch (error) {
-    console.warn('Redis unavailable, using in-memory blacklist:', error.message)
+    console.warn('Redis unavailable, using in-memory blacklist:', error instanceof Error ? error.message : 'Unknown error')
     blacklistedTokens.add(jti)
     
     // Clean up blacklist periodically (keep only non-expired tokens)
@@ -230,8 +230,8 @@ export function isValidTokenFormat(token: string): boolean {
 }
 
 // Extract user info from token
-export function getUserFromToken(token: string): Pick<JWTPayload, 'userId' | 'email' | 'username' | 'role'> | null {
-  const payload = verifyToken(token)
+export async function getUserFromToken(token: string): Promise<Pick<JWTPayload, 'userId' | 'email' | 'username' | 'role'> | null> {
+  const payload = await verifyToken(token)
   if (!payload) return null
   
   return {

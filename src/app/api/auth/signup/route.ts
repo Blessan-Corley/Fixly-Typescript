@@ -150,14 +150,14 @@ export async function POST(request: NextRequest) {
 
     // Generate JWT tokens
     const { accessToken, refreshToken } = createTokens({
-      userId: user._id.toString(),
+      userId: (user._id as any).toString(),
       email: user.email,
       role: user.role,
       username: user.username
     })
 
     // Store refresh token in database
-    user.metadata.refreshToken = refreshToken
+    ;(user.metadata as any).refreshToken = refreshToken
     await user.save()
 
     // Set HTTP-only cookie for refresh token
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Account created successfully! Welcome to Fixly!',
       user: {
-        id: user._id.toString(),
+        id: (user._id as any).toString(),
         email: user.email,
         name: user.name,
         username: user.username,
@@ -194,9 +194,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Signup error:', error)
     
-    if (error.code === 11000) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
       // MongoDB duplicate key error
-      const field = Object.keys(error.keyPattern)[0]
+      const mongoError = error as any
+      const field = Object.keys(mongoError.keyPattern)[0]
       return NextResponse.json(
         { error: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists` },
         { status: 409 }

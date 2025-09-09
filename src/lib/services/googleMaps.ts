@@ -1,10 +1,3 @@
-// Essential Google Maps services for Fixly
-// Required APIs:
-// 1. Maps JavaScript API - For interactive maps
-// 2. Geocoding API - For address to coordinates conversion
-// 3. Places API - For place search and autocomplete
-// 4. Distance Matrix API - For calculating distances between locations
-// 5. Geolocation API - For user location detection
 
 import { GoogleMapsGeocodingResult, LocationData } from '@/types'
 
@@ -53,13 +46,13 @@ export class GeocodingService {
         )
         return response.json()
       })
-
+      
       if (result.status === 'OK' && result.results.length > 0) {
         const location = this.parseGeocodingResult(result.results[0], lat, lng)
         this.cache.set(cacheKey, location)
         return location
       }
-
+      
       return null
     } catch (error) {
       console.error('Reverse geocoding error:', error)
@@ -73,7 +66,7 @@ export class GeocodingService {
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey)
     }
-
+    
     try {
       const result = await this.throttleRequest(async () => {
         const response = await fetch(
@@ -92,14 +85,14 @@ export class GeocodingService {
         this.cache.set(cacheKey, location)
         return location
       }
-
+      
       return null
     } catch (error) {
       console.error('Geocoding error:', error)
       return null
     }
   }
-
+  
   private parseGeocodingResult(result: GoogleMapsGeocodingResult, lat: number, lng: number): LocationData {
     const components = result.address_components
     let city = '', state = '', stateCode = '', pincode = ''
@@ -120,7 +113,7 @@ export class GeocodingService {
         pincode = component.long_name
       }
     })
-
+    
     return {
       type: 'gps',
       coordinates: {
@@ -136,7 +129,7 @@ export class GeocodingService {
       timestamp: new Date()
     }
   }
-
+  
   // Get current location using browser API with Google fallback
   async getCurrentLocation(): Promise<LocationData | null> {
     return new Promise((resolve, reject) => {
@@ -144,7 +137,7 @@ export class GeocodingService {
         reject(new Error('Geolocation is not supported by this browser'))
         return
       }
-
+      
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude, accuracy } = position.coords
@@ -182,7 +175,7 @@ export class GeocodingService {
       )
     })
   }
-
+  
   // Clear cache
   clearCache(): void {
     this.cache.clear()
@@ -193,34 +186,34 @@ export class GeocodingService {
 export class PlacesService {
   private static instance: PlacesService
   private sessionToken: string = ''
-
+  
   static getInstance(): PlacesService {
     if (!PlacesService.instance) {
       PlacesService.instance = new PlacesService()
     }
     return PlacesService.instance
   }
-
+  
   private generateSessionToken(): string {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
   }
-
+  
   // Search places with autocomplete
   async searchPlaces(input: string, location?: { lat: number; lng: number }): Promise<any[]> {
     if (!input || input.length < 3) return []
-
+    
     try {
       this.sessionToken = this.generateSessionToken()
       
       let url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${GOOGLE_MAPS_API_KEY}&sessiontoken=${this.sessionToken}&components=country:in&types=(cities)`
-
+      
       if (location) {
         url += `&location=${location.lat},${location.lng}&radius=50000` // 50km radius
       }
-
+      
       const response = await fetch(url)
       const result = await response.json()
-
+      
       if (result.status === 'OK') {
         return result.predictions.map((prediction: any) => ({
           placeId: prediction.place_id,
@@ -230,7 +223,7 @@ export class PlacesService {
           types: prediction.types
         }))
       }
-
+      
       return []
     } catch (error) {
       console.error('Places search error:', error)
@@ -245,12 +238,12 @@ export class PlacesService {
         `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${GOOGLE_MAPS_API_KEY}&sessiontoken=${this.sessionToken}&fields=address_components,formatted_address,geometry`
       )
       const result = await response.json()
-
+      
       if (result.status === 'OK' && result.result) {
         const place = result.result
         const components = place.address_components
         let city = '', state = '', stateCode = '', pincode = ''
-
+        
         components.forEach((component: any) => {
           const types = component.types
           
@@ -267,7 +260,7 @@ export class PlacesService {
             pincode = component.long_name
           }
         })
-
+        
         return {
           type: 'manual',
           coordinates: {
@@ -282,7 +275,7 @@ export class PlacesService {
           timestamp: new Date()
         }
       }
-
+      
       return null
     } catch (error) {
       console.error('Place details error:', error)
@@ -301,7 +294,7 @@ export class DistanceService {
     }
     return DistanceService.instance
   }
-
+  
   // Calculate distance between two points using Haversine formula
   calculateHaversineDistance(
     lat1: number, lng1: number,
@@ -312,14 +305,14 @@ export class DistanceService {
     const dLng = (lng2 - lng1) * (Math.PI / 180)
     
     const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2)
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2)
     
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     return R * c
   }
-
+  
   // Get precise distance and duration using Google Distance Matrix API
   async getDistanceMatrix(
     origins: Array<{ lat: number; lng: number }>,
@@ -329,7 +322,7 @@ export class DistanceService {
     try {
       const originsStr = origins.map(o => `${o.lat},${o.lng}`).join('|')
       const destinationsStr = destinations.map(d => `${d.lat},${d.lng}`).join('|')
-
+      
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originsStr}&destinations=${destinationsStr}&mode=${mode}&units=metric&key=${GOOGLE_MAPS_API_KEY}`
       )
@@ -364,7 +357,7 @@ export class MapUtils {
     return {
       zoom: 13,
       center,
-      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      mapTypeId: 'roadmap',
       streetViewControl: false,
       mapTypeControl: false,
       fullscreenControl: false,
@@ -379,7 +372,7 @@ export class MapUtils {
       ]
     }
   }
-
+  
   static createMarker(
     map: google.maps.Map,
     position: { lat: number; lng: number },
@@ -393,23 +386,23 @@ export class MapUtils {
       icon: icon || {
         url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
           <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="16" cy="16" r="8" fill="#6366F1" stroke="#FFFFFF" stroke-width="2"/>
+          <circle cx="16" cy="16" r="8" fill="#6366F1" stroke="#FFFFFF" stroke-width="2"/>
           </svg>
-        `),
-        scaledSize: new google.maps.Size(32, 32),
-        anchor: new google.maps.Point(16, 16)
-      }
+          `),
+          scaledSize: new google.maps.Size(32, 32),
+          anchor: new google.maps.Point(16, 16)
+        }
     })
   }
-
+  
   static createInfoWindow(content: string): google.maps.InfoWindow {
     return new google.maps.InfoWindow({
       content: `
         <div style="padding: 8px; font-family: system-ui;">
           ${content}
-        </div>
-      `
-    })
+          </div>
+          `
+        })
   }
 
   static fitBounds(map: google.maps.Map, locations: Array<{ lat: number; lng: number }>): void {
@@ -431,7 +424,7 @@ export const distanceService = DistanceService.getInstance()
 // Location permission helper
 export async function requestLocationPermission(): Promise<boolean> {
   if (!navigator.permissions) return false
-
+  
   try {
     const permission = await navigator.permissions.query({ name: 'geolocation' })
     return permission.state === 'granted'
@@ -454,4 +447,11 @@ export function isLocationInIndia(lat: number, lng: number): boolean {
          lat <= indiaBounds.north && 
          lng >= indiaBounds.west && 
          lng <= indiaBounds.east
-}
+        }
+  // Essential Google Maps services for Fixly
+  // Required APIs:
+  // 1. Maps JavaScript API - For interactive maps
+  // 2. Geocoding API - For address to coordinates conversion
+  // 3. Places API - For place search and autocomplete
+  // 4. Distance Matrix API - For calculating distances between locations
+  // 5. Geolocation API - For user location detection

@@ -1,9 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ScrollText, Handshake, AlertTriangle, Shield, Gavel, Users, ArrowLeft } from 'lucide-react'
+import { ScrollText, Handshake, AlertTriangle, Shield, Gavel, Users, ArrowLeft, Loader2 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import PageLayout from '@/components/layout/page-layout'
 
 const Section = ({ icon: Icon, title, children, delay = 0 }: {
@@ -29,7 +29,7 @@ const Section = ({ icon: Icon, title, children, delay = 0 }: {
   </motion.div>
 )
 
-export default function TermsOfServicePage() {
+function TermsOfServiceContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [returnUrl, setReturnUrl] = useState('')
@@ -198,5 +198,27 @@ export default function TermsOfServicePage() {
         </div>
       </section>
     </PageLayout>
+  )
+}
+
+export default function TermsOfServicePage() {
+  return (
+    <Suspense fallback={
+      <PageLayout
+        title="Terms of Service"
+        description="The fine print that's actually readable! These terms govern how Fixly works – think of them as the rules of the game, but friendlier."
+      >
+        <section className="py-16 px-6">
+          <div className="container mx-auto max-w-4xl">
+            <div className="glass-card p-8 rounded-2xl text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-text-secondary">Loading...</p>
+            </div>
+          </div>
+        </section>
+      </PageLayout>
+    }>
+      <TermsOfServiceContent />
+    </Suspense>
   )
 }

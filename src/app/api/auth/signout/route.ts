@@ -3,7 +3,7 @@ import { ApiResponse } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
-    const response = NextResponse.json<ApiResponse>({
+    const response = NextResponse.json({
       success: true,
       message: 'Signed out successfully'
     })
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Signout error:', error)
 
-    return NextResponse.json<ApiResponse>({
+    return NextResponse.json({
       success: false,
       message: 'Internal server error'
     }, { status: 500 })

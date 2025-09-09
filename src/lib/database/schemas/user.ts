@@ -263,10 +263,10 @@ const UserSchema = new Schema<User>({
   toJSON: {
     transform: function(doc, ret) {
       // Remove sensitive fields when converting to JSON
-      delete ret.passwordHash
-      delete ret.refreshTokens
-      delete ret.twoFactorSecret
-      delete ret.__v
+      delete (ret as any).passwordHash
+      delete (ret as any).refreshTokens
+      delete (ret as any).twoFactorSecret
+      delete (ret as any).__v
       return ret
     }
   }
@@ -323,7 +323,7 @@ UserSchema.pre('save', async function(next) {
   })
   
   if (user.role === 'fixer') {
-    user.metadata.profileCompleted = isComplete && user.skills && user.skills.length > 0
+    user.metadata.profileCompleted = isComplete && Boolean(user.skills && user.skills.length > 0)
   } else {
     user.metadata.profileCompleted = isComplete
   }
@@ -525,7 +525,7 @@ UserSchema.statics.searchBySkills = function(skills: string[], location?: { city
 // Create compound geo index
 UserSchema.index({ 'location.coordinates': '2dsphere' })
 
-export interface UserDocument extends User, Document {
+export interface UserDocument extends Omit<User, '_id'>, Document {
   comparePassword(candidatePassword: string): Promise<boolean>
   generateRefreshToken(): string
   removeRefreshToken(token: string): void
@@ -540,4 +540,4 @@ export interface UserModel extends Model<UserDocument> {
   searchBySkills(skills: string[], location?: { city: string, state: string }): Promise<UserDocument[]>
 }
 
-export default mongoose.models.User as UserModel || mongoose.model<UserDocument, UserModel>('User', UserSchema)
+export default (mongoose.models.User || mongoose.model('User', UserSchema)) as UserModel

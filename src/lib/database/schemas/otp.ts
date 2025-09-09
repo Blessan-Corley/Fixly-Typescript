@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose'
 import { OTPData } from '@/types'
+import { generateOTP } from '@/lib/auth/otp'
 
 // OTP Schema for secure email verification and password reset
 const OTPSchema = new Schema<OTPData>({
@@ -69,8 +70,8 @@ const OTPSchema = new Schema<OTPData>({
   timestamps: true,
   toJSON: {
     transform: function(doc, ret) {
-      delete ret.otp // Never expose OTP in JSON responses
-      delete ret.__v
+      delete (ret as any).otp // Never expose OTP in JSON responses
+      delete (ret as any).__v
       return ret
     }
   }
@@ -155,7 +156,7 @@ OTPSchema.statics.createOTP = async function(
     ]
   })
   
-  const otp = this.generateOTP()
+  const otp = generateOTP()
   const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000)
   
   const otpDocument = new this({
@@ -323,8 +324,8 @@ OTPSchema.statics.detectSuspiciousOTPActivity = async function(email: string, ip
   
   if (recentOTPs.length === 0) return { suspicious: false }
   
-  const uniqueIPs = new Set(recentOTPs.map(otp => otp.ipAddress).filter(Boolean))
-  const failedCount = recentOTPs.filter(otp => otp.attempts >= 5).length
+  const uniqueIPs = new Set(recentOTPs.map((otp: any) => otp.ipAddress).filter(Boolean))
+  const failedCount = recentOTPs.filter((otp: any) => otp.attempts >= 5).length
   
   const suspicious = {
     suspicious: false,
@@ -389,4 +390,4 @@ export interface OTPModel extends Model<OTPDocument> {
   detectSuspiciousOTPActivity(email: string, ipAddress?: string): Promise<any>
 }
 
-export default mongoose.models.OTP as OTPModel || mongoose.model<OTPDocument, OTPModel>('OTP', OTPSchema)
+export default (mongoose.models.OTP || mongoose.model('OTP', OTPSchema)) as OTPModel

@@ -96,9 +96,10 @@ export async function POST(request: NextRequest) {
       
       // Generate reset token
       const { accessToken, refreshToken } = createTokens({
-        userId: user._id.toString(),
+        userId: (user._id as any).toString(),
         email: user.email,
-        type: 'password-reset'
+        username: user.username,
+        role: user.role
       })
       
       // Delete the used OTP

@@ -1,443 +1,237 @@
-// Skills data for Fixly platform
-export interface Skill {
-  id: string
-  name: string
-  category: string
-  description?: string
-  averageRate?: {
-    min: number
-    max: number
-  }
-  demandLevel: 'low' | 'medium' | 'high' | 'very-high'
-  icon?: string
-}
+import { SkillCategory, SkillSearchParams } from '@/types'
 
-export interface SkillCategory {
-  id: string
-  name: string
-  description: string
-  icon: string
-  color: string
-}
-
-// Skill Categories
+// Streamlined skill categories - focused on popular and essential services
 export const skillCategories: SkillCategory[] = [
   {
-    id: 'home-repair',
-    name: 'Home Repair & Maintenance',
-    description: 'General home repairs and maintenance services',
-    icon: '🏠',
-    color: 'blue'
-  },
-  {
-    id: 'plumbing',
-    name: 'Plumbing',
-    description: 'Water systems, pipes, and fixtures',
-    icon: '🔧',
-    color: 'cyan'
-  },
-  {
-    id: 'electrical',
-    name: 'Electrical',
-    description: 'Wiring, lighting, and electrical systems',
+    name: 'Electrical Services',
     icon: '⚡',
-    color: 'yellow'
+    isPopular: true,
+    skills: [
+      'Electrician',
+      'AC Installation & Repair',
+      'Wiring & Rewiring',
+      'Fan Installation',
+      'Light Fitting',
+      'Switch & Socket Work',
+      'Home Appliance Repair',
+      'Generator Services',
+      'Smart Home Setup'
+    ]
   },
   {
-    id: 'automotive',
-    name: 'Automotive',
-    description: 'Vehicle maintenance and repairs',
-    icon: '🚗',
-    color: 'red'
+    name: 'Plumbing Services',
+    icon: '🔧',
+    isPopular: true,
+    skills: [
+      'Plumbing Installation',
+      'Pipe Repair & Replacement',
+      'Tap & Faucet Repair',
+      'Toilet Repair',
+      'Water Tank Services',
+      'Drainage & Sewage',
+      'Bathroom Fitting',
+      'Kitchen Plumbing',
+      'Water Heater Services'
+    ]
   },
   {
-    id: 'electronics',
-    name: 'Electronics & Appliances',
-    description: 'Electronic devices and home appliances',
-    icon: '📱',
-    color: 'purple'
+    name: 'Home Repair & Maintenance',
+    icon: '🏠',
+    isPopular: true,
+    skills: [
+      'Carpentry',
+      'Painting & Wallpaper',
+      'Tile & Flooring',
+      'Door & Window Repair',
+      'Furniture Assembly',
+      'Wall Mounting',
+      'Ceiling Work',
+      'General Handyman',
+      'Home Inspection'
+    ]
   },
   {
-    id: 'carpentry',
-    name: 'Carpentry & Woodwork',
-    description: 'Furniture and wooden structures',
-    icon: '🪚',
-    color: 'orange'
-  },
-  {
-    id: 'painting',
-    name: 'Painting & Decoration',
-    description: 'Interior and exterior painting',
-    icon: '🎨',
-    color: 'green'
-  },
-  {
-    id: 'cleaning',
     name: 'Cleaning Services',
-    description: 'Professional cleaning and maintenance',
-    icon: '🧹',
-    color: 'teal'
+    icon: '🧽',
+    isPopular: true,
+    skills: [
+      'House Cleaning',
+      'Deep Cleaning',
+      'Office Cleaning',
+      'Carpet Cleaning',
+      'Window Cleaning',
+      'Kitchen Cleaning',
+      'Bathroom Cleaning',
+      'Post-Construction Cleaning',
+      'Move-in/Move-out Cleaning'
+    ]
   },
   {
-    id: 'gardening',
-    name: 'Gardening & Landscaping',
-    description: 'Garden maintenance and landscaping',
+    name: 'Tech & Electronics',
+    icon: '💻',
+    isPopular: false,
+    skills: [
+      'Computer Repair',
+      'TV Installation',
+      'WiFi Setup',
+      'CCTV Installation',
+      'Mobile Phone Repair',
+      'Data Recovery',
+      'Software Installation',
+      'Network Setup'
+    ]
+  },
+  {
+    name: 'Automotive Services',
+    icon: '🚗',
+    isPopular: false,
+    skills: [
+      'Car Repair',
+      'Bike Repair',
+      'Car Washing',
+      'Battery Services',
+      'Tire Services',
+      'Car Electronics',
+      'Vehicle Inspection',
+      'Roadside Assistance'
+    ]
+  },
+  {
+    name: 'Beauty & Wellness',
+    icon: '💄',
+    isPopular: false,
+    skills: [
+      'Hair Styling',
+      'Massage Therapy',
+      'Facial Services',
+      'Nail Services',
+      'Makeup Artist',
+      'Personal Trainer',
+      'Yoga Instructor',
+      'Nutrition Counseling'
+    ]
+  },
+  {
+    name: 'Education & Tutoring',
+    icon: '📚',
+    isPopular: false,
+    skills: [
+      'Academic Tutoring',
+      'Language Teaching',
+      'Music Lessons',
+      'Art Classes',
+      'Computer Training',
+      'Exam Preparation',
+      'Skill Development',
+      'Professional Coaching'
+    ]
+  },
+  {
+    name: 'Event & Photography',
+    icon: '📸',
+    isPopular: false,
+    skills: [
+      'Wedding Photography',
+      'Event Photography',
+      'Videography',
+      'Event Planning',
+      'DJ Services',
+      'Catering Services',
+      'Decoration Services',
+      'Sound System Setup'
+    ]
+  },
+  {
+    name: 'Garden & Outdoor',
     icon: '🌱',
-    color: 'emerald'
-  },
-  {
-    id: 'hvac',
-    name: 'HVAC',
-    description: 'Heating, ventilation, and air conditioning',
-    icon: '❄️',
-    color: 'indigo'
+    isPopular: false,
+    skills: [
+      'Gardening Services',
+      'Landscaping',
+      'Lawn Care',
+      'Plant Care',
+      'Tree Services',
+      'Pest Control',
+      'Outdoor Cleaning',
+      'Pool Maintenance'
+    ]
   }
 ]
 
-// Skills Database
-export const skills: Skill[] = [
-  // Home Repair & Maintenance
-  {
-    id: 'general-handyman',
-    name: 'General Handyman Services',
-    category: 'home-repair',
-    description: 'Basic home repairs and maintenance tasks',
-    averageRate: { min: 300, max: 600 },
-    demandLevel: 'very-high'
-  },
-  {
-    id: 'wall-repair',
-    name: 'Wall Repair & Patching',
-    category: 'home-repair',
-    averageRate: { min: 200, max: 500 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'door-window-repair',
-    name: 'Door & Window Repair',
-    category: 'home-repair',
-    averageRate: { min: 250, max: 700 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'furniture-assembly',
-    name: 'Furniture Assembly',
-    category: 'home-repair',
-    averageRate: { min: 200, max: 400 },
-    demandLevel: 'very-high'
-  },
-  {
-    id: 'ceiling-fan-installation',
-    name: 'Ceiling Fan Installation',
-    category: 'home-repair',
-    averageRate: { min: 300, max: 500 },
-    demandLevel: 'high'
-  },
-
-  // Plumbing
-  {
-    id: 'pipe-repair',
-    name: 'Pipe Repair & Replacement',
-    category: 'plumbing',
-    averageRate: { min: 400, max: 800 },
-    demandLevel: 'very-high'
-  },
-  {
-    id: 'tap-faucet-repair',
-    name: 'Tap & Faucet Repair',
-    category: 'plumbing',
-    averageRate: { min: 200, max: 400 },
-    demandLevel: 'very-high'
-  },
-  {
-    id: 'toilet-repair',
-    name: 'Toilet Repair & Installation',
-    category: 'plumbing',
-    averageRate: { min: 300, max: 600 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'water-heater-service',
-    name: 'Water Heater Service',
-    category: 'plumbing',
-    averageRate: { min: 500, max: 1000 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'drain-cleaning',
-    name: 'Drain Cleaning & Unclogging',
-    category: 'plumbing',
-    averageRate: { min: 300, max: 600 },
-    demandLevel: 'very-high'
-  },
-
-  // Electrical
-  {
-    id: 'electrical-wiring',
-    name: 'Electrical Wiring',
-    category: 'electrical',
-    averageRate: { min: 500, max: 1200 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'switch-socket-installation',
-    name: 'Switch & Socket Installation',
-    category: 'electrical',
-    averageRate: { min: 150, max: 300 },
-    demandLevel: 'very-high'
-  },
-  {
-    id: 'lighting-installation',
-    name: 'Lighting Installation',
-    category: 'electrical',
-    averageRate: { min: 200, max: 500 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'electrical-troubleshooting',
-    name: 'Electrical Troubleshooting',
-    category: 'electrical',
-    averageRate: { min: 300, max: 600 },
-    demandLevel: 'very-high'
-  },
-  {
-    id: 'inverter-ups-service',
-    name: 'Inverter & UPS Service',
-    category: 'electrical',
-    averageRate: { min: 400, max: 800 },
-    demandLevel: 'high'
-  },
-
-  // Automotive
-  {
-    id: 'car-wash-detailing',
-    name: 'Car Wash & Detailing',
-    category: 'automotive',
-    averageRate: { min: 300, max: 800 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'bike-service',
-    name: 'Bike Service & Repair',
-    category: 'automotive',
-    averageRate: { min: 200, max: 500 },
-    demandLevel: 'very-high'
-  },
-  {
-    id: 'car-service',
-    name: 'Car Service & Maintenance',
-    category: 'automotive',
-    averageRate: { min: 800, max: 2000 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'tire-service',
-    name: 'Tire Change & Repair',
-    category: 'automotive',
-    averageRate: { min: 200, max: 400 },
-    demandLevel: 'medium'
-  },
-
-  // Electronics & Appliances
-  {
-    id: 'washing-machine-repair',
-    name: 'Washing Machine Repair',
-    category: 'electronics',
-    averageRate: { min: 300, max: 800 },
-    demandLevel: 'very-high'
-  },
-  {
-    id: 'refrigerator-repair',
-    name: 'Refrigerator Repair',
-    category: 'electronics',
-    averageRate: { min: 400, max: 1000 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'ac-service',
-    name: 'Air Conditioner Service',
-    category: 'electronics',
-    averageRate: { min: 500, max: 1200 },
-    demandLevel: 'very-high'
-  },
-  {
-    id: 'microwave-repair',
-    name: 'Microwave Repair',
-    category: 'electronics',
-    averageRate: { min: 300, max: 600 },
-    demandLevel: 'medium'
-  },
-  {
-    id: 'tv-repair',
-    name: 'TV Repair',
-    category: 'electronics',
-    averageRate: { min: 400, max: 800 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'laptop-computer-repair',
-    name: 'Laptop & Computer Repair',
-    category: 'electronics',
-    averageRate: { min: 500, max: 1500 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'mobile-phone-repair',
-    name: 'Mobile Phone Repair',
-    category: 'electronics',
-    averageRate: { min: 200, max: 600 },
-    demandLevel: 'very-high'
-  },
-
-  // Carpentry & Woodwork
-  {
-    id: 'furniture-making',
-    name: 'Custom Furniture Making',
-    category: 'carpentry',
-    averageRate: { min: 800, max: 2500 },
-    demandLevel: 'medium'
-  },
-  {
-    id: 'furniture-repair',
-    name: 'Furniture Repair',
-    category: 'carpentry',
-    averageRate: { min: 300, max: 800 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'cabinet-installation',
-    name: 'Cabinet Installation',
-    category: 'carpentry',
-    averageRate: { min: 500, max: 1200 },
-    demandLevel: 'medium'
-  },
-  {
-    id: 'wooden-flooring',
-    name: 'Wooden Flooring',
-    category: 'carpentry',
-    averageRate: { min: 800, max: 2000 },
-    demandLevel: 'low'
-  },
-
-  // Painting & Decoration
-  {
-    id: 'interior-painting',
-    name: 'Interior Painting',
-    category: 'painting',
-    averageRate: { min: 400, max: 1000 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'exterior-painting',
-    name: 'Exterior Painting',
-    category: 'painting',
-    averageRate: { min: 500, max: 1200 },
-    demandLevel: 'medium'
-  },
-  {
-    id: 'wall-texture',
-    name: 'Wall Texture & Design',
-    category: 'painting',
-    averageRate: { min: 600, max: 1500 },
-    demandLevel: 'low'
-  },
-
-  // Cleaning Services
-  {
-    id: 'house-cleaning',
-    name: 'House Cleaning',
-    category: 'cleaning',
-    averageRate: { min: 300, max: 800 },
-    demandLevel: 'very-high'
-  },
-  {
-    id: 'deep-cleaning',
-    name: 'Deep Cleaning',
-    category: 'cleaning',
-    averageRate: { min: 500, max: 1200 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'carpet-cleaning',
-    name: 'Carpet Cleaning',
-    category: 'cleaning',
-    averageRate: { min: 200, max: 600 },
-    demandLevel: 'medium'
-  },
-
-  // Gardening & Landscaping
-  {
-    id: 'garden-maintenance',
-    name: 'Garden Maintenance',
-    category: 'gardening',
-    averageRate: { min: 300, max: 800 },
-    demandLevel: 'medium'
-  },
-  {
-    id: 'plant-care',
-    name: 'Plant Care & Watering',
-    category: 'gardening',
-    averageRate: { min: 200, max: 500 },
-    demandLevel: 'medium'
-  },
-  {
-    id: 'landscaping',
-    name: 'Landscaping & Design',
-    category: 'gardening',
-    averageRate: { min: 1000, max: 5000 },
-    demandLevel: 'low'
-  },
-
-  // HVAC
-  {
-    id: 'ac-installation',
-    name: 'AC Installation',
-    category: 'hvac',
-    averageRate: { min: 800, max: 2000 },
-    demandLevel: 'high'
-  },
-  {
-    id: 'ac-maintenance',
-    name: 'AC Maintenance',
-    category: 'hvac',
-    averageRate: { min: 400, max: 800 },
-    demandLevel: 'very-high'
+// Search functionality
+export function searchSkills(params: SkillSearchParams): string[] {
+  const { query, category, limit = 20 } = params
+  
+  if (!query?.trim()) return []
+  
+  const searchTerm = query.toLowerCase().trim()
+  let filteredCategories = skillCategories
+  
+  // Filter by category if provided
+  if (category && category !== 'all') {
+    filteredCategories = skillCategories.filter(cat => 
+      cat.name.toLowerCase().includes(category.toLowerCase())
+    )
   }
-]
-
-// Helper Functions
-export const getSkillsByCategory = (categoryId: string): Skill[] => {
-  return skills.filter(skill => skill.category === categoryId)
+  
+  // Search through skills
+  const results: string[] = []
+  
+  filteredCategories.forEach(category => {
+    category.skills.forEach(skill => {
+      if (skill.toLowerCase().includes(searchTerm) && results.length < limit) {
+        results.push(skill)
+      }
+    })
+  })
+  
+  return results
 }
 
-export const getSkillById = (id: string): Skill | undefined => {
-  return skills.find(skill => skill.id === id)
+export function getSkillsByCategory(categoryName: string): string[] {
+  const category = skillCategories.find(cat => cat.name === categoryName)
+  return category ? category.skills : []
 }
 
-export const searchSkills = (query: string): Skill[] => {
-  const lowercaseQuery = query.toLowerCase()
-  return skills.filter(skill => 
-    skill.name.toLowerCase().includes(lowercaseQuery) ||
-    skill.description?.toLowerCase().includes(lowercaseQuery)
-  )
+export function getAllSkills(): string[] {
+  return skillCategories.flatMap(cat => cat.skills)
 }
 
-export const getHighDemandSkills = (): Skill[] => {
-  return skills.filter(skill => 
-    skill.demandLevel === 'high' || skill.demandLevel === 'very-high'
-  )
+export function getPopularSkills(limit: number = 20): string[] {
+  const popularSkills: string[] = []
+  
+  skillCategories.filter(cat => cat.isPopular).forEach(category => {
+    popularSkills.push(...category.skills.slice(0, 3))
+  })
+  
+  return popularSkills.slice(0, limit)
 }
 
-export const getCategoryById = (id: string): SkillCategory | undefined => {
-  return skillCategories.find(category => category.id === id)
+export function getCategoryForSkill(skill: string): string | null {
+  const category = skillCategories.find(cat => cat.skills.includes(skill))
+  return category?.name || null
 }
 
-// Get popular skills (top 15 by demand)
-export const getPopularSkills = (): Skill[] => {
-  const demandOrder = { 'very-high': 4, 'high': 3, 'medium': 2, 'low': 1 }
-  return skills
-    .sort((a, b) => demandOrder[b.demandLevel] - demandOrder[a.demandLevel])
-    .slice(0, 15)
+export function getSkillCategoriesForDisplay() {
+  return skillCategories.map(category => ({
+    name: category.name,
+    icon: category.icon,
+    isPopular: category.isPopular,
+    topSkills: category.skills.slice(0, 5), // Show top 5 skills for each category
+    totalSkills: category.skills.length
+  }))
 }
 
-export const skillsData = skills
+// Aliases for backward compatibility
+export const SKILL_CATEGORIES = skillCategories.map(cat => cat.name)
+export const SKILLS = skillCategories.flatMap(cat => 
+  cat.skills.map(skill => ({
+    id: skill.toLowerCase().replace(/\s+/g, '-'),
+    name: skill,
+    category: cat.name,
+    description: `Professional ${skill.toLowerCase()} services`,
+    popular: cat.isPopular
+  }))
+)
+
+// Alias function already exists above - removed duplicate

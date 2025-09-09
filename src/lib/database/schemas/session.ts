@@ -2,10 +2,9 @@ import mongoose, { Schema, Document, Model } from 'mongoose'
 import { UserSession } from '@/types'
 
 // User Session Schema for secure JWT session management
-const UserSessionSchema = new Schema<UserSession>({
+const UserSessionSchema = new Schema({
   userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,
     required: true,
     index: true
   },
@@ -70,8 +69,8 @@ const UserSessionSchema = new Schema<UserSession>({
   timestamps: false, // We handle timestamps manually
   toJSON: {
     transform: function(doc, ret) {
-      delete ret.__v
-      delete ret.refreshToken // Don't expose refresh token in JSON
+      delete (ret as any).__v
+      delete (ret as any).refreshToken // Don't expose refresh token in JSON
       return ret
     }
   }
@@ -145,7 +144,7 @@ UserSessionSchema.statics.findActiveSession = function(sessionId: string) {
     sessionId,
     isActive: true,
     expiresAt: { $gt: new Date() }
-  }).populate('userId', 'email username role isActive isVerified')
+  })
 }
 
 UserSessionSchema.statics.findByRefreshToken = function(refreshToken: string) {
@@ -153,7 +152,7 @@ UserSessionSchema.statics.findByRefreshToken = function(refreshToken: string) {
     refreshToken,
     isActive: true,
     expiresAt: { $gt: new Date() }
-  }).populate('userId', 'email username role isActive isVerified')
+  })
 }
 
 UserSessionSchema.statics.revokeUserSessions = async function(userId: string, exceptSessionId?: string) {
@@ -189,7 +188,7 @@ UserSessionSchema.statics.getSessionStats = async function(userId: string) {
   const pipeline = [
     {
       $match: {
-        userId: new mongoose.Types.ObjectId(userId)
+        userId: userId
       }
     },
     {
@@ -233,18 +232,18 @@ UserSessionSchema.statics.getSessionStats = async function(userId: string) {
 
 // Security method to detect suspicious activity
 UserSessionSchema.statics.detectSuspiciousActivity = async function(userId: string) {
-  const recentSessions = await this.find({
+  const recentSessions: any[] = await this.find({
     userId,
     createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Last 24 hours
   }).sort({ createdAt: -1 })
   
   if (recentSessions.length === 0) return { suspicious: false }
   
-  const uniqueIPs = new Set(recentSessions.map(s => s.ipAddress))
-  const uniqueUserAgents = new Set(recentSessions.map(s => s.userAgent))
+  const uniqueIPs = new Set(recentSessions.map((s: any) => s.ipAddress))
+  const uniqueUserAgents = new Set(recentSessions.map((s: any) => s.userAgent))
   const locations = recentSessions
-    .filter(s => s.location?.coordinates)
-    .map(s => s.location!.coordinates!)
+    .filter((s: any) => s.location?.coordinates)
+    .map((s: any) => s.location!.coordinates!)
   
   const suspicious = {
     suspicious: false,
@@ -299,7 +298,7 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * c
 }
 
-export interface UserSessionDocument extends UserSession, Document {
+export interface UserSessionDocument extends Omit<UserSession, '_id'>, Document {
   updateLastAccessed(): Promise<void>
   revoke(): Promise<void>
   isExpired(): boolean
@@ -325,4 +324,4 @@ export interface UserSessionModel extends Model<UserSessionDocument> {
   detectSuspiciousActivity(userId: string): Promise<any>
 }
 
-export default mongoose.models.UserSession as UserSessionModel || mongoose.model<UserSessionDocument, UserSessionModel>('UserSession', UserSessionSchema)
+export default (mongoose.models.UserSession || mongoose.model('UserSession', UserSessionSchema)) as UserSessionModel

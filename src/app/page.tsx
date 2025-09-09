@@ -97,7 +97,7 @@ export default function HomePage() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
             >
-              <Link href="/auth/choose-role">
+              <Link href="/auth/signup">
                 <motion.button
                   className="px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold hover:shadow-glow-primary transition-all"
                   whileHover={{ scale: 1.02, y: -2 }}
@@ -110,7 +110,7 @@ export default function HomePage() {
                 </motion.button>
               </Link>
               
-              <Link href="/auth/choose-role?role=fixer">
+              <Link href="/auth/signup?role=fixer">
                 <motion.button
                   className="px-8 py-4 rounded-xl bg-surface text-text-primary font-semibold border border-border hover:shadow-lg transition-all"
                   whileHover={{ scale: 1.02, y: -2 }}
@@ -218,7 +218,7 @@ export default function HomePage() {
               Join over 15,000 satisfied customers and 800+ verified professionals
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/auth/choose-role">
+              <Link href="/auth/signup">
                 <motion.button
                   className="px-8 py-4 rounded-xl bg-white text-primary font-semibold hover:bg-gray-50"
                   whileHover={{ scale: 1.02 }}

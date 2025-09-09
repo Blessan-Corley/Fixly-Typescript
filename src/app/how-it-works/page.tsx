@@ -355,7 +355,7 @@ export default function HowItWorksPage() {
                   </motion.li>
                 ))}
               </ul>
-              <Link href="/auth/choose-role?role=fixer">
+              <Link href="/auth/signup?role=fixer">
                 <motion.button
                   className="btn-glass px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold hover:shadow-glow-primary transition-all group"
                   whileHover={{ scale: 1.02, y: -2 }}
@@ -445,7 +445,7 @@ export default function HowItWorksPage() {
               Join thousands of satisfied customers who trust Fixly for their home service needs
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/auth/choose-role">
+              <Link href="/auth/signup">
                 <motion.button
                   className="btn-glass px-8 py-4 rounded-xl bg-white text-primary font-semibold hover:bg-gray-50 transition-colors"
                   whileHover={{ scale: 1.05, y: -2 }}

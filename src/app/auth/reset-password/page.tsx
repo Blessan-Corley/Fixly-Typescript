@@ -86,7 +86,7 @@ function ResetPasswordContent() {
         }),
       })
 
-      const data: ApiResponse = await response.json()
+      const data = await response.json()
       
       if (data.success) {
         setSuccess(true)

@@ -37,7 +37,7 @@ export function Logo({
       scale: 1, 
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 400,
         damping: 17
       }
@@ -45,7 +45,7 @@ export function Logo({
     hover: { 
       scale: 1.05,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 400,
         damping: 10
       }
@@ -59,7 +59,7 @@ export function Logo({
       opacity: 1,
       transition: {
         delay: 0.2,
-        type: "spring",
+        type: "spring" as const,
         stiffness: 400,
         damping: 17
       }

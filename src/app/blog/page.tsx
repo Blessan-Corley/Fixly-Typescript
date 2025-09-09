@@ -3,14 +3,13 @@
 import { motion } from 'framer-motion'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 import PageLayout from '@/components/layout/page-layout'
-import { title } from 'process'
 
 export default function BlogPage() {
   const mockPosts = [
     { title: "10 Home Maintenance Tips That Actually Work", author: "Team Fixly", date: "Jan 15, 2025", excerpt: "Learn the secrets pros don't want you to know about keeping your home in perfect condition." },
     { title: "The Psychology of Finding the Perfect Fixer", author: "Blessan Corley", date: "Jan 10, 2025", excerpt: "It's not just about skills – it's about finding someone who gets you. Here's how we match personalities too." },
-    { title: "From Broken to Beautiful: Customer Success Stories", author: "Vinoth Kumar", date: "Jan 5, 2025", excerpt: "Real stories from real customers about transformations that went beyond just 'fixing' things." }
-    {title: "The Ultimate Guide to Home Repairs in 2025", author: "Dinesh Madhavan", date: "Dec 20, 2024", excerpt: "Everything you need to know about tackling common home repairs this year."  }
+    { title: "From Broken to Beautiful: Customer Success Stories", author: "Vinoth Kumar", date: "Jan 5, 2025", excerpt: "Real stories from real customers about transformations that went beyond just 'fixing' things." },
+    { title: "The Ultimate Guide to Home Repairs in 2025", author: "Dinesh Madhavan", date: "Dec 20, 2024", excerpt: "Everything you need to know about tackling common home repairs this year." }
   ]
 
   return (

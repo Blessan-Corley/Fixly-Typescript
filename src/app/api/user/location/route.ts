@@ -3,8 +3,80 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import connectToDatabase from '@/lib/database/connection'
 import User from '@/lib/database/schemas/user'
-import LocationService from '@/lib/services/location'
+import { GeocodingService } from '@/lib/services/googleMaps'
 import { z } from 'zod'
+
+// India boundaries and utilities
+const INDIA_BOUNDARIES = {
+  LAT_MIN: 6.0,
+  LAT_MAX: 37.6,
+  LNG_MIN: 68.0,
+  LNG_MAX: 97.25
+}
+
+const STATE_CODES = {
+  'Andhra Pradesh': 'AP',
+  'Arunachal Pradesh': 'AR',
+  'Assam': 'AS',
+  'Bihar': 'BR',
+  'Chhattisgarh': 'CG',
+  'Delhi': 'DL',
+  'Goa': 'GA',
+  'Gujarat': 'GJ',
+  'Haryana': 'HR',
+  'Himachal Pradesh': 'HP',
+  'Jharkhand': 'JH',
+  'Karnataka': 'KA',
+  'Kerala': 'KL',
+  'Madhya Pradesh': 'MP',
+  'Maharashtra': 'MH',
+  'Manipur': 'MN',
+  'Meghalaya': 'ML',
+  'Mizoram': 'MZ',
+  'Nagaland': 'NL',
+  'Odisha': 'OR',
+  'Punjab': 'PB',
+  'Rajasthan': 'RJ',
+  'Sikkim': 'SK',
+  'Tamil Nadu': 'TN',
+  'Telangana': 'TG',
+  'Tripura': 'TR',
+  'Uttar Pradesh': 'UP',
+  'Uttarakhand': 'UK',
+  'West Bengal': 'WB',
+  'Jammu and Kashmir': 'JK',
+  'Ladakh': 'LA'
+}
+
+// Utility functions
+const isWithinIndiaBounds = (lat: number, lng: number): boolean => {
+  return lat >= INDIA_BOUNDARIES.LAT_MIN && lat <= INDIA_BOUNDARIES.LAT_MAX &&
+         lng >= INDIA_BOUNDARIES.LNG_MIN && lng <= INDIA_BOUNDARIES.LNG_MAX
+}
+
+const getStateCode = (state: string): string => {
+  return STATE_CODES[state as keyof typeof STATE_CODES] || ''
+}
+
+const formatLocation = (location: any) => {
+  if (!location) return ''
+  return [location.city, location.state].filter(Boolean).join(', ')
+}
+
+const getRegionFromState = (state: string): string => {
+  const northStates = ['Punjab', 'Haryana', 'Himachal Pradesh', 'Uttarakhand', 'Uttar Pradesh', 'Delhi', 'Jammu and Kashmir', 'Ladakh']
+  const southStates = ['Andhra Pradesh', 'Karnataka', 'Kerala', 'Tamil Nadu', 'Telangana']
+  const westStates = ['Gujarat', 'Maharashtra', 'Rajasthan', 'Goa']
+  const eastStates = ['West Bengal', 'Odisha', 'Jharkhand', 'Bihar']
+  const northeastStates = ['Assam', 'Arunachal Pradesh', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Sikkim', 'Tripura']
+  
+  if (northStates.includes(state)) return 'North'
+  if (southStates.includes(state)) return 'South'
+  if (westStates.includes(state)) return 'West'
+  if (eastStates.includes(state)) return 'East'
+  if (northeastStates.includes(state)) return 'Northeast'
+  return 'Central'
+}
 
 const updateLocationSchema = z.object({
   coordinates: z.object({
@@ -50,7 +122,7 @@ export async function GET(request: NextRequest) {
         locationHistory: user.locationHistory || [],
         approximateLocation: user.approximateLocation,
         serviceRadius: user.serviceRadius,
-        formattedLocation: LocationService.formatLocation(user.location)
+        formattedLocation: formatLocation(user.location)
       }
     })
 
@@ -92,7 +164,7 @@ export async function PUT(request: NextRequest) {
     const { coordinates, address, city, state, pincode, method } = validationResult.data
 
     // Additional India bounds validation
-    if (!LocationService.isWithinIndiaBounds(coordinates.lat, coordinates.lng)) {
+    if (!isWithinIndiaBounds(coordinates.lat, coordinates.lng)) {
       return NextResponse.json(
         { 
           error: 'Location must be within India',
@@ -112,21 +184,24 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Use the updateLocation method we added to the schema
-    user.updateLocation({
+    // Update location fields directly
+    user.location = {
+      type: method === 'gps' ? 'gps' : 'manual',
       coordinates,
       address,
       city,
       state,
-      method
-    })
+      stateCode: 'XX', // Could be extracted from address
+      timestamp: new Date(),
+      verified: false
+    }
 
     // Update additional fields
     if (pincode) {
       user.location.pincode = pincode
     }
 
-    user.location.stateCode = LocationService.getStateCode(state)
+    user.location.stateCode = getStateCode(state)
     user.location.verified = method === 'gps' // GPS locations are considered more verified
 
     await user.save()
@@ -137,17 +212,17 @@ export async function PUT(request: NextRequest) {
       data: {
         currentLocation: user.location,
         approximateLocation: user.approximateLocation,
-        locationHistory: user.locationHistory.slice(0, 3), // Return only last 3
-        formattedLocation: LocationService.formatLocation(user.location)
+        locationHistory: user.locationHistory?.slice(0, 3) || [], // Return only last 3
+        formattedLocation: formatLocation(user.location)
       }
     })
 
   } catch (error) {
     console.error('Update location error:', error)
     
-    if (error.name === 'ValidationError') {
+    if (error instanceof Error && error.name === 'ValidationError') {
       return NextResponse.json(
-        { error: 'Invalid location data', details: error.errors },
+        { error: 'Invalid location data', details: (error as any).errors },
         { status: 400 }
       )
     }
@@ -182,7 +257,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate coordinates are within India
-    if (!LocationService.isWithinIndiaBounds(coordinates.lat, coordinates.lng)) {
+    if (!isWithinIndiaBounds(coordinates.lat, coordinates.lng)) {
       return NextResponse.json(
         { 
           error: 'Location must be within India',
@@ -192,12 +267,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Reverse geocode to get address details
-    const geocodeResult = await LocationService.reverseGeocode(coordinates.lat, coordinates.lng)
+    // Reverse geocode to get address details using Google Maps
+    const geocodingService = GeocodingService.getInstance()
+    const geocodeResult = await geocodingService.reverseGeocode(coordinates.lat, coordinates.lng)
     
-    if (geocodeResult.error) {
+    if (!geocodeResult) {
       return NextResponse.json(
-        { error: geocodeResult.error },
+        { error: 'Failed to geocode coordinates' },
         { status: 400 }
       )
     }
@@ -215,7 +291,7 @@ export async function POST(request: NextRequest) {
         state: geocodeResult.state,
         stateCode: geocodeResult.stateCode,
         pincode: geocodeResult.pincode,
-        region: LocationService.getRegionFromState(geocodeResult.state || ''),
+        region: getRegionFromState(geocodeResult.state || ''),
         isWithinIndia: true
       }
     })

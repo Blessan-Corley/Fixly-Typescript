@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export default withAuth(
-  async function middleware(req: NextRequest) {
-    const token = req.nextauth?.token
+  async function middleware(req) {
+    const token = req.nextauth.token
     const { pathname } = req.nextUrl
 
     // Skip middleware for API routes, static files, and auth pages

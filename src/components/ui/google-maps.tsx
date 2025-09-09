@@ -49,15 +49,15 @@ export function GoogleMapsLocationPicker({
   const markerRef = useRef<any>(null)
   const autocompleteServiceRef = useRef<any>(null)
   const placesServiceRef = useRef<any>(null)
-  const debounceRef = useRef<NodeJS.Timeout>()
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
   // Initialize Google Maps
   useEffect(() => {
     const initializeMap = () => {
-      if (!window.google || !mapRef.current) return
+      if (!(window as any).google || !mapRef.current) return
 
       // Initialize map
-      mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
+      mapInstanceRef.current = new (window as any).google.maps.Map(mapRef.current, {
         center: mapCenter,
         zoom: mapZoom,
         styles: [
@@ -88,15 +88,15 @@ export function GoogleMapsLocationPicker({
       })
 
       // Initialize services
-      autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService()
-      placesServiceRef.current = new window.google.maps.places.PlacesService(mapInstanceRef.current)
+      autocompleteServiceRef.current = new (window as any).google.maps.places.AutocompleteService()
+      placesServiceRef.current = new (window as any).google.maps.places.PlacesService(mapInstanceRef.current)
 
       // Initialize marker
-      markerRef.current = new window.google.maps.Marker({
+      markerRef.current = new (window as any).google.maps.Marker({
         map: mapInstanceRef.current,
         position: mapCenter,
         draggable: true,
-        animation: window.google.maps.Animation.DROP
+        animation: (window as any).google.maps.Animation.DROP
       })
 
       // Handle marker drag
@@ -111,7 +111,7 @@ export function GoogleMapsLocationPicker({
       }
     }
 
-    if (window.google) {
+    if ((window as any).google) {
       initializeMap()
     } else {
       // Load Google Maps script
@@ -141,13 +141,13 @@ export function GoogleMapsLocationPicker({
   }, [])
 
   const reverseGeocode = useCallback(async (coordinates: { lat: number; lng: number }) => {
-    if (!window.google) return
+    if (!(window as any).google) return
 
-    const geocoder = new window.google.maps.Geocoder()
+    const geocoder = new (window as any).google.maps.Geocoder()
     
     try {
       const response = await new Promise((resolve, reject) => {
-        geocoder.geocode({ location: coordinates }, (results, status) => {
+        geocoder.geocode({ location: coordinates }, (results: any, status: any) => {
           if (status === 'OK' && results?.[0]) {
             resolve(results[0])
           } else {
@@ -195,7 +195,7 @@ export function GoogleMapsLocationPicker({
           },
           (predictions: any[], status: any) => {
             setIsLoading(false)
-            if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+            if (status === (window as any).google.maps.places.PlacesServiceStatus.OK && predictions) {
               setSuggestions(predictions.slice(0, 5))
               setShowSuggestions(true)
             } else {
@@ -225,7 +225,7 @@ export function GoogleMapsLocationPicker({
       (place: any, status: any) => {
         setIsLoading(false)
         
-        if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
+        if (status === (window as any).google.maps.places.PlacesServiceStatus.OK && place) {
           const coordinates = {
             lat: place.geometry.location.lat(),
             lng: place.geometry.location.lng()

@@ -148,12 +148,12 @@ export default function AboutPage() {
             <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-6">Our Story</h2>
             <div className="space-y-4 text-lg text-text-secondary leading-relaxed">
               <p>
-                Fixly was born from a simple frustration: finding reliable local service professionals shouldn't be a gamble. 
+                Fixly was born from a simple frustration: finding reliable local service professionals shouldn&apos;t be a gamble. 
                 Our founders experienced firsthand the challenges of connecting with trustworthy fixers for home repairs and professional services.
               </p>
               <p>
-                In 2025, we launched India's first hyperlocal marketplace that puts verification, quality, and transparency at the center of home services. 
-                Today, we're proud to connect over 15,000 customers with 800+ verified professionals who deliver exceptional results.
+                In 2025, we launched India&apos;s first hyperlocal marketplace that puts verification, quality, and transparency at the center of home services. 
+                Today, we&apos;re proud to connect over 15,000 customers with 800+ verified professionals who deliver exceptional results.
               </p>
               <p>
                 Every fixer on our platform undergoes comprehensive identity verification, background checks, and skill assessment. 
@@ -273,7 +273,7 @@ export default function AboutPage() {
           >
             <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">Meet Our Team</h2>
             <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-              The passionate people behind Fixly's mission
+              The passionate people behind Fixly&apos;s mission
             </p>
           </motion.div>
 
@@ -326,7 +326,7 @@ export default function AboutPage() {
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Mission</h2>
             <p className="text-xl leading-relaxed mb-8 opacity-90">
-              To become India's most trusted hyperlocal service marketplace, connecting every customer with verified local professionals. 
+              To become India&apos;s most trusted hyperlocal service marketplace, connecting every customer with verified local professionals. 
               Making quality home services accessible, affordable, and reliable for everyone.
             </p>
             <Link href="/services">
