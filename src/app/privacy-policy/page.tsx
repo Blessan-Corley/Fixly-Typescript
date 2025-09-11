@@ -1,222 +1,328 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { Shield, Eye, Cookie, Database, Lock, Users, AlertTriangle, Mail, Calendar, ArrowLeft, Loader2 } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState, Suspense } from 'react'
-import PageLayout from '@/components/layout/page-layout'
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Shield, Eye, Lock, Users, Database, AlertTriangle, CheckCircle, Mail } from 'lucide-react';
+import PageLayout from '@/components/layout/page-layout';
 
-const Section = ({ icon: Icon, title, children, delay = 0 }: {
-  icon: React.ComponentType<any>
-  title: string
-  children: React.ReactNode
-  delay?: number
-}) => (
-  <motion.div
-    className="glass-card p-6 rounded-xl mb-8"
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.6, delay }}
-  >
-    <div className="flex items-center gap-3 mb-4">
-      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-        <Icon className="w-5 h-5 text-primary" />
-      </div>
-      <h2 className="text-xl font-bold text-text-primary">{title}</h2>
-    </div>
-    <div className="text-text-secondary space-y-4">{children}</div>
-  </motion.div>
-)
-
-function PrivacyPolicyContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [returnUrl, setReturnUrl] = useState('')
-
-  useEffect(() => {
-    const urlParam = searchParams.get('returnUrl')
-    if (urlParam) {
-      setReturnUrl(decodeURIComponent(urlParam))
-    }
-  }, [searchParams])
-
-  const handleGoBack = () => {
-    if (returnUrl) {
-      router.push(returnUrl)
-    } else {
-      router.back()
-    }
-  }
-  return (
-    <PageLayout
-      title="Privacy Policy"
-      description="We take your privacy seriously (like, really seriously). Here's how we protect your data and why you can trust us with your information."
-    >
-      <section className="py-16 px-6">
-        <div className="container mx-auto max-w-4xl">
-          {/* Back Button */}
-          {returnUrl && (
-            <motion.button
-              onClick={handleGoBack}
-              className="flex items-center gap-2 text-primary hover:text-primary-600 font-medium mb-6 transition-colors group"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Back to Signup
-            </motion.button>
-          )}
-          {/* Introduction */}
-          <motion.div
-            className="glass-card p-8 rounded-2xl mb-12 text-center"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <Shield className="w-8 h-8 text-primary" />
-              <h2 className="text-2xl font-bold text-text-primary">Your Privacy Matters</h2>
-              <Lock className="w-8 h-8 text-accent" />
-            </div>
-            <p className="text-lg text-text-secondary mb-4">
-              At Fixly, we believe privacy isn't just a policy – it's a promise. This document explains how we collect, 
-              use, and protect your personal information. We've written it in plain English because legal jargon is about 
-              as useful as a chocolate teapot.
-            </p>
-            <p className="text-sm text-text-muted">
-              Last updated: January 1, 2025 • Effective date: January 1, 2025
-            </p>
-          </motion.div>
-
-          <Section icon={Database} title="Information We Collect" delay={0.1}>
-            <p><strong>Personal Information:</strong> When you create an account, we collect basic info like your name, email, phone number, and location. Think of it as a digital handshake – we need to know who we're talking to!</p>
-            
-            <p><strong>Service Information:</strong> Details about jobs you post or complete, ratings, reviews, and payment information. This helps us make sure everyone has a great experience.</p>
-            
-            <p><strong>Technical Information:</strong> We collect device info, IP addresses, and how you use our platform. Don't worry – we're not spying on you, we're just trying to make things work better.</p>
-            
-            <p><strong>Communication Data:</strong> Messages between customers and fixers for quality assurance and dispute resolution. We only read them if there's a problem that needs solving.</p>
-          </Section>
-
-          <Section icon={Eye} title="How We Use Your Information" delay={0.2}>
-            <div className="space-y-3">
-              <p>We use your information to:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Connect you with the right fixers or customers</li>
-                <li>Process payments securely (because nobody works for free)</li>
-                <li>Send important updates and notifications</li>
-                <li>Improve our platform based on how people actually use it</li>
-                <li>Prevent fraud and keep everyone safe</li>
-                <li>Provide customer support when things go sideways</li>
-                <li>Comply with legal requirements (boring but necessary)</li>
-              </ul>
-            </div>
-          </Section>
-
-          <Section icon={Users} title="Information Sharing" delay={0.3}>
-            <p>We share your information only when necessary:</p>
-            
-            <p><strong>With Other Users:</strong> Your profile info is visible to people you're doing business with. Fixers can see customer details for jobs they're working on, and vice versa.</p>
-            
-            <p><strong>With Service Providers:</strong> We work with payment processors, email services, and other tools to keep Fixly running smoothly. They only get the info they need to do their job.</p>
-            
-            <p><strong>For Legal Reasons:</strong> If required by law, court orders, or to protect safety. We're not lawyers, but we know when we have to comply.</p>
-            
-            <p><strong>Business Transfers:</strong> If Fixly gets acquired (fingers crossed!), your data would transfer to the new owners under the same privacy protections.</p>
-          </Section>
-
-          <Section icon={Cookie} title="Cookies and Tracking" delay={0.4}>
-            <p>We use cookies (the digital kind – sadly, no chocolate chips involved) to:</p>
-            <div className="ml-4 space-y-2">
-              <p>• Remember your login and preferences</p>
-              <p>• Analyze how people use our site to make improvements</p>
-              <p>• Show relevant content and features</p>
-              <p>• Prevent fraud and security issues</p>
-            </div>
-            <p>You can control cookies through your browser settings, but some features might not work properly without them.</p>
-          </Section>
-
-          <Section icon={Lock} title="Data Security" delay={0.5}>
-            <p>We protect your data like it's our own family photos:</p>
-            
-            <p><strong>Encryption:</strong> All sensitive data is encrypted in transit and at rest. We use industry-standard security measures.</p>
-            
-            <p><strong>Access Controls:</strong> Only authorized employees can access personal data, and they're trained on privacy practices.</p>
-            
-            <p><strong>Regular Audits:</strong> We regularly review our security practices and update them as needed.</p>
-            
-            <p><strong>Incident Response:</strong> If something goes wrong, we'll notify you and relevant authorities as required by law.</p>
-          </Section>
-
-          <Section icon={AlertTriangle} title="Your Rights" delay={0.6}>
-            <p>You have control over your personal information:</p>
-            <div className="space-y-3">
-              <p><strong>Access:</strong> You can request a copy of all the personal data we have about you.</p>
-              <p><strong>Correction:</strong> Found something wrong? Let us know and we'll fix it.</p>
-              <p><strong>Deletion:</strong> Want to delete your account? We'll remove your personal data (though we might keep some for legal reasons).</p>
-              <p><strong>Portability:</strong> You can download your data in a standard format.</p>
-              <p><strong>Objection:</strong> Don't like how we're using your data? You can object to certain types of processing.</p>
-            </div>
-            <p className="text-sm italic">To exercise these rights, just contact us at privacy@fixly.com. We'll respond within 30 days (usually much faster).</p>
-          </Section>
-
-          <Section icon={Calendar} title="Data Retention" delay={0.7}>
-            <p>We don't keep your data forever:</p>
-            
-            <p><strong>Active Accounts:</strong> We keep your data as long as your account is active and for a reasonable period after to handle any issues.</p>
-            
-            <p><strong>Deleted Accounts:</strong> When you delete your account, we remove personal data within 90 days (some data might be retained for legal compliance).</p>
-            
-            <p><strong>Legal Requirements:</strong> Some data (like financial records) must be kept longer for tax and legal reasons.</p>
-          </Section>
-
-          <Section icon={Mail} title="Contact Us" delay={0.8}>
-            <p>Questions about this privacy policy? We're here to help:</p>
-            <div className="mt-4 space-y-2">
-              <p><strong>Email:</strong> privacy@fixly.com</p>
-              <p><strong>Address:</strong> Privacy Team, Fixly Technologies, 123 Innovation Street, Mumbai 400050, India</p>
-              <p><strong>Response Time:</strong> We'll get back to you within 5 business days (usually much sooner)</p>
-            </div>
-          </Section>
-
-          {/* Changes Notice */}
-          <motion.div
-            className="glass-card p-6 rounded-xl border-l-4 border-l-accent"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.9 }}
-          >
-            <h3 className="font-bold text-text-primary mb-2">Changes to This Policy</h3>
-            <p className="text-text-secondary">
-              We may update this privacy policy from time to time. When we do, we'll post the new version here and 
-              notify you via email or through our platform. The "last updated" date at the top will always reflect 
-              the most recent changes. Keep checking back – we promise to keep it readable and relevant.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-    </PageLayout>
-  )
+interface PrivacySection {
+  id: string;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  content: string;
+  details?: string[];
 }
 
+const privacySections: PrivacySection[] = [
+  {
+    id: 'data-collection',
+    title: 'What We Collect (And Why We\'re Not Creepy About It)',
+    icon: Database,
+    content: 'We collect information to make Fixly work better for you, not to sell your data to the highest bidder like some companies *cough* we won\'t name.',
+    details: [
+      'Personal Information: Name, email, phone number (the basics to know who you are)',
+      'Profile Information: Location, skills, preferences (to match you with the right fixers)',
+      'Job Details: What needs fixing, photos, descriptions (so fixers know what they\'re getting into)',
+      'Communication Data: Messages between users (to help resolve disputes and improve service)',
+      'Usage Analytics: How you use the app (to make it less confusing and more awesome)',
+      'Payment Information: Processed securely through trusted payment gateways (we never see your full card details)'
+    ]
+  },
+  {
+    id: 'data-usage',
+    title: 'How We Use Your Data (The Good Stuff)',
+    icon: Eye,
+    content: 'Your data helps us connect you with great fixers and make the platform better. We\'re not in the business of spam or creepy advertising.',
+    details: [
+      'Matching customers with qualified fixers in their area',
+      'Processing payments and managing transactions',
+      'Sending important notifications about your jobs',
+      'Improving our recommendation algorithms',
+      'Preventing fraud and keeping the platform safe',
+      'Customer support and dispute resolution',
+      'Legal compliance and safety measures'
+    ]
+  },
+  {
+    id: 'data-sharing',
+    title: 'Who We Share Data With (Spoiler: Very Few People)',
+    icon: Users,
+    content: 'We don\'t sell your personal information. Period. We only share what\'s necessary to make the service work.',
+    details: [
+      'Other Users: Only relevant job details and public profile information',
+      'Payment Processors: Secure payment handling (Razorpay, Stripe, etc.)',
+      'SMS/Email Services: For sending notifications and updates',
+      'Analytics Tools: Anonymized usage data to improve the platform',
+      'Legal Authorities: Only when required by law (we\'ll fight it if it\'s unreasonable)',
+      'Service Providers: Vetted partners who help us operate the platform'
+    ]
+  },
+  {
+    id: 'data-security',
+    title: 'How We Protect Your Data (Fort Knox Style)',
+    icon: Shield,
+    content: 'We take security seriously. Your data is encrypted, protected, and guarded better than the recipe for Coca-Cola.',
+    details: [
+      'End-to-end encryption for sensitive communications',
+      'Secure HTTPS connections for all data transmission',
+      'Regular security audits and vulnerability testing',
+      'Limited employee access with strict authorization',
+      'Secure cloud infrastructure with backup systems',
+      'Two-factor authentication for user accounts',
+      'Automatic data breach detection and response'
+    ]
+  },
+  {
+    id: 'cookies',
+    title: 'Cookies & Tracking (The Digital Kind)',
+    icon: AlertTriangle,
+    content: 'We use cookies to make the site work better, not to track you across the internet like a digital stalker.',
+    details: [
+      'Essential Cookies: Required for the platform to function properly',
+      'Analytics Cookies: Help us understand how to improve the user experience',
+      'Preference Cookies: Remember your settings and preferences',
+      'No Third-Party Tracking: We don\'t allow advertisers to track you on our platform',
+      'Cookie Control: You can manage cookie preferences in your browser',
+      'Session Management: Keep you logged in securely'
+    ]
+  },
+  {
+    id: 'your-rights',
+    title: 'Your Rights (Because You\'re In Control)',
+    icon: CheckCircle,
+    content: 'Your data, your rules. You have complete control over your information and we make it easy to exercise your rights.',
+    details: [
+      'Access Your Data: Download everything we have about you',
+      'Correct Your Data: Update or fix any incorrect information',
+      'Delete Your Data: Permanently remove your account and data',
+      'Portability: Take your data to another service if you want',
+      'Object to Processing: Opt out of certain data uses',
+      'Withdraw Consent: Change your mind about data sharing anytime',
+      'File Complaints: Contact us or regulatory authorities if you have concerns'
+    ]
+  }
+];
+
 export default function PrivacyPolicyPage() {
+  const [expandedSection, setExpandedSection] = useState<string | null>('data-collection');
+  const [lastUpdated] = useState('January 10, 2025');
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSection(expandedSection === sectionId ? null : sectionId);
+  };
+
   return (
-    <Suspense fallback={
-      <PageLayout>
-        <div className="min-h-screen flex items-center justify-center p-6">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-text-secondary">Loading Privacy Policy...</p>
+    <PageLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-20"
+        >
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center gap-2 glass-card px-6 py-3 rounded-full text-slate-700 font-medium mb-8"
+          >
+            <Lock className="w-5 h-5" />
+            Privacy Policy
+          </motion.div>
+          
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-5xl md:text-6xl font-bold text-slate-900 mb-6"
+          >
+            Your Privacy Matters
+            <br />
+            <span className="text-slate-600">(And We Actually Mean It)</span>
+          </motion.h1>
+          
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-xl text-slate-600 max-w-3xl mx-auto mb-8"
+          >
+            We believe privacy shouldn't be complicated. This policy explains how we handle your data in plain English, 
+            without the legal jargon that makes your eyes glaze over.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-sm text-slate-500"
+          >
+            Last updated: {lastUpdated}
+          </motion.div>
+        </motion.div>
+
+        {/* Quick Summary */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="glass-card rounded-3xl p-8 shadow-elevated hover-lift-subtle"
+          >
+            <h2 className="text-2xl font-bold text-slate-900 mb-6 text-center">
+              TL;DR - The Quick Version 📝
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="bg-slate-100 p-4 rounded-2xl mb-4 inline-flex">
+                  <Shield className="w-8 h-8 text-slate-600" />
+                </div>
+                <h3 className="font-semibold text-slate-900 mb-2">We Protect Your Data</h3>
+                <p className="text-sm text-slate-600">Bank-level security, encryption, and strict access controls</p>
+              </div>
+              <div className="text-center">
+                <div className="bg-blue-100 p-4 rounded-2xl mb-4 inline-flex">
+                  <Users className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-slate-900 mb-2">No Data Selling</h3>
+                <p className="text-sm text-slate-600">We never sell your personal information to third parties</p>
+              </div>
+              <div className="text-center">
+                <div className="bg-slate-100 p-4 rounded-2xl mb-4 inline-flex">
+                  <CheckCircle className="w-8 h-8 text-slate-600" />
+                </div>
+                <h3 className="font-semibold text-slate-900 mb-2">You're In Control</h3>
+                <p className="text-sm text-slate-600">Access, modify, or delete your data anytime you want</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Detailed Sections */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+          <div className="space-y-4">
+            {privacySections.map((section, index) => (
+              <motion.div
+                key={section.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 + index * 0.1 }}
+                className="glass-card rounded-2xl border border-slate-200 overflow-hidden shadow-subtle hover:shadow-elevated card-hover"
+              >
+                <button
+                  onClick={() => toggleSection(section.id)}
+                  className="w-full px-8 py-6 text-left flex items-center gap-4 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="bg-slate-100 p-3 rounded-2xl">
+                    <section.icon className="w-6 h-6 text-slate-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-slate-900 text-lg mb-1">{section.title}</h3>
+                    <p className="text-slate-600">{section.content}</p>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: expandedSection === section.id ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <svg className="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </motion.div>
+                </button>
+                
+                <motion.div
+                  initial={false}
+                  animate={{
+                    height: expandedSection === section.id ? 'auto' : 0,
+                    opacity: expandedSection === section.id ? 1 : 0
+                  }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-8 pb-6 border-t border-slate-100">
+                    <div className="pt-6">
+                      {section.details && (
+                        <ul className="space-y-3">
+                          {section.details.map((detail, detailIndex) => (
+                            <motion.li
+                              key={detailIndex}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: detailIndex * 0.05 }}
+                              className="flex items-start gap-3"
+                            >
+                              <CheckCircle className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-slate-700">{detail}</span>
+                            </motion.li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            ))}
           </div>
         </div>
-      </PageLayout>
-    }>
-      <PrivacyPolicyContent />
-    </Suspense>
-  )
+
+        {/* Contact Section */}
+        <div className="bg-slate-50/50 py-20">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-slate-900 rounded-3xl p-12"
+            >
+              <Mail className="w-12 h-12 text-white mx-auto mb-6" />
+              <h2 className="text-3xl font-bold text-white mb-4">
+                Got Questions About Your Privacy?
+              </h2>
+              <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+                We're here to help! If anything in this policy is unclear or if you have specific questions about how we handle your data, just ask.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <motion.a
+                  href="mailto:privacy@fixly.in"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-white text-slate-700 font-semibold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl btn-hover transition-all duration-300"
+                >
+                  Email Our Privacy Team
+                </motion.a>
+                <motion.a
+                  href="/contact"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="border-2 border-white text-white font-semibold py-4 px-8 rounded-2xl hover:bg-white hover:text-slate-700 btn-hover transition-all duration-300"
+                >
+                  Contact Support
+                </motion.a>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Footer Note */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="text-sm text-slate-500 space-y-2"
+          >
+            <p>
+              This privacy policy is effective as of {lastUpdated} and will remain in effect except with respect to any changes in its provisions in the future.
+            </p>
+            <p>
+              We reserve the right to update or change this policy at any time, and you should check this page periodically. 
+              Changes will be effective immediately upon posting (we'll also email you about significant changes).
+            </p>
+            <p className="font-medium text-slate-700 mt-4">
+              Remember: You're not just a user, you're a person with rights. We respect that. 🤝
+            </p>
+          </motion.div>
+        </div>
+      </div>
+    </PageLayout>
+  );
 }

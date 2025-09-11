@@ -13,7 +13,7 @@ declare namespace google {
     }
     
     interface Marker {
-      setPosition(position: LatLng | { lat: number; lng: number }): void;
+      setPosition(_position: LatLng | { lat: number; lng: number }): void;
       [key: string]: any;
     }
     

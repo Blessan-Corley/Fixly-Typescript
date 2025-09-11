@@ -1,224 +1,332 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { ScrollText, Handshake, AlertTriangle, Shield, Gavel, Users, ArrowLeft, Loader2 } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState, Suspense } from 'react'
-import PageLayout from '@/components/layout/page-layout'
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { FileText, Users, Handshake, Shield, AlertTriangle, Scale, CheckCircle, Mail } from 'lucide-react';
+import PageLayout from '@/components/layout/page-layout';
 
-const Section = ({ icon: Icon, title, children, delay = 0 }: {
-  icon: React.ComponentType<any>
-  title: string
-  children: React.ReactNode
-  delay?: number
-}) => (
-  <motion.div
-    className="glass-card p-6 rounded-xl mb-8"
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.6, delay }}
-  >
-    <div className="flex items-center gap-3 mb-4">
-      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-        <Icon className="w-5 h-5 text-primary" />
-      </div>
-      <h2 className="text-xl font-bold text-text-primary">{title}</h2>
-    </div>
-    <div className="text-text-secondary space-y-4">{children}</div>
-  </motion.div>
-)
-
-function TermsOfServiceContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [returnUrl, setReturnUrl] = useState('')
-
-  useEffect(() => {
-    const urlParam = searchParams.get('returnUrl')
-    if (urlParam) {
-      setReturnUrl(decodeURIComponent(urlParam))
-    }
-  }, [searchParams])
-
-  const handleGoBack = () => {
-    if (returnUrl) {
-      router.push(returnUrl)
-    } else {
-      router.back()
-    }
-  }
-  return (
-    <PageLayout
-      title="Terms of Service"
-      description="The fine print that's actually readable! These terms govern how Fixly works – think of them as the rules of the game, but friendlier."
-    >
-      <section className="py-16 px-6">
-        <div className="container mx-auto max-w-4xl">
-          {/* Back Button */}
-          {returnUrl && (
-            <motion.button
-              onClick={handleGoBack}
-              className="flex items-center gap-2 text-primary hover:text-primary-600 font-medium mb-6 transition-colors group"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              Back to Signup
-            </motion.button>
-          )}
-          {/* Introduction */}
-          <motion.div
-            className="glass-card p-8 rounded-2xl mb-12 text-center"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <ScrollText className="w-8 h-8 text-primary" />
-              <h2 className="text-2xl font-bold text-text-primary">Simple, Fair Terms</h2>
-              <Handshake className="w-8 h-8 text-accent" />
-            </div>
-            <p className="text-lg text-text-secondary mb-4">
-              Welcome to Fixly! These terms outline how our platform works and what we expect from each other. 
-              We've tried to keep the legalese to a minimum because life's too short for complicated contracts.
-            </p>
-            <p className="text-sm text-text-muted">
-              Last updated: Semptember 1, 2025 • By using Fixly, you agree to these terms
-            </p>
-          </motion.div>
-
-          <Section icon={Users} title="Who Can Use Fixly" delay={0.1}>
-            <p>To use our platform, you must be:</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>At least 18 years old (sorry, no teenage entrepreneurs... yet!)</li>
-              <li>Legally able to enter into contracts</li>
-              <li>Not prohibited from using our services by applicable law</li>
-              <li>A real human being (no bots, please)</li>
-            </ul>
-            <p>If you're representing a business, you confirm you have the authority to bind that business to these terms.</p>
-          </Section>
-
-          <Section icon={Handshake} title="How Fixly Works" delay={0.2}>
-            <p><strong>For Customers:</strong> Post jobs, get quotes from verified fixers, choose who you want to work with, and pay through our secure platform.</p>
-            
-            <p><strong>For Fixers:</strong> Create a profile, browse available jobs, submit quotes, complete work, and get paid.</p>
-            
-            <p><strong>Our Role:</strong> We're the matchmaker, not the actual service provider. Think of us as the friendly middleman who makes sure everyone plays nice.</p>
-            
-            <p>We facilitate connections but don't directly provide the services. The actual work is between you and the fixer.</p>
-          </Section>
-
-          <Section icon={Shield} title="Account Responsibilities" delay={0.3}>
-            <p>You're responsible for:</p>
-            <div className="space-y-2">
-              <p>• Providing accurate information (no fake names or addresses, please)</p>
-              <p>• Keeping your login credentials secure</p>
-              <p>• All activity that happens under your account</p>
-              <p>• Notifying us immediately of any unauthorized use</p>
-              <p>• Following our community guidelines and being respectful</p>
-            </div>
-            <p className="text-sm italic">Basically: be honest, be secure, and be nice to everyone.</p>
-          </Section>
-
-          <Section icon={Gavel} title="Payment Terms" delay={0.4}>
-            <p><strong>Service Fees:</strong> We charge a small fee for facilitating transactions. Fees are clearly displayed before you commit to anything.</p>
-            
-            <p><strong>Payment Protection:</strong> Payments are held securely until work is completed to everyone's satisfaction.</p>
-            
-            <p><strong>Refunds:</strong> Refunds are handled on a case-by-case basis. We'll work with both parties to find a fair resolution.</p>
-            
-            <p><strong>Taxes:</strong> You're responsible for any applicable taxes on your earnings or purchases. We're not tax advisors!</p>
-          </Section>
-
-          <Section icon={AlertTriangle} title="What's Not Allowed" delay={0.5}>
-            <p>Please don't:</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Use fake information or impersonate others</li>
-              <li>Post jobs for illegal activities or services</li>
-              <li>Harass, threaten, or discriminate against other users</li>
-              <li>Try to circumvent our platform or payment system</li>
-              <li>Spam or post irrelevant content</li>
-              <li>Violate any laws or regulations</li>
-              <li>Upload malicious content or viruses</li>
-            </ul>
-            <p>Basically: don't be that person. We reserve the right to suspend or terminate accounts that violate these rules.</p>
-          </Section>
-
-          <Section icon={ScrollText} title="Dispute Resolution" delay={0.6}>
-            <p>If something goes wrong:</p>
-            
-            <p><strong>Step 1:</strong> Try to work it out directly with the other party. Most issues can be resolved with good communication.</p>
-            
-            <p><strong>Step 2:</strong> If that doesn't work, contact our support team. We'll investigate and help mediate.</p>
-            
-            <p><strong>Step 3:</strong> For serious disputes, we may recommend professional mediation or arbitration.</p>
-            
-            <p>We want everyone to have a positive experience, so we'll do our best to help resolve conflicts fairly.</p>
-          </Section>
-
-          {/* Limitation of Liability */}
-          <motion.div
-            className="glass-card p-6 rounded-xl border-l-4 border-l-accent mb-8"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-          >
-            <h3 className="font-bold text-text-primary mb-3">Important Legal Stuff</h3>
-            <div className="text-text-secondary space-y-3">
-              <p><strong>Disclaimer:</strong> We provide the platform "as is" without warranties. We can't guarantee that every job will go perfectly or that every user will be amazing.</p>
-              
-              <p><strong>Liability Limits:</strong> Our liability is limited to the amount you've paid us for services. We're not responsible for indirect damages, lost profits, or other consequential losses.</p>
-              
-              <p><strong>Third Party Services:</strong> We work with payment processors and other service providers. We're not responsible for their actions or failures.</p>
-            </div>
-          </motion.div>
-
-          {/* Final Section */}
-          <motion.div
-            className="glass-card p-8 rounded-2xl text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-          >
-            <h3 className="text-xl font-bold text-text-primary mb-4">Questions?</h3>
-            <p className="text-text-secondary mb-6">
-              These terms might seem long, but they're designed to protect everyone and keep Fixly running smoothly. 
-              If you have questions about any of this, don't hesitate to reach out – we're always happy to clarify.
-            </p>
-            <p className="text-sm text-text-muted">
-              Contact us at <strong>legal@fixly.com</strong> • Mumbai, India • We typically respond within 24 hours
-            </p>
-          </motion.div>
-        </div>
-      </section>
-    </PageLayout>
-  )
+interface TermsSection {
+  id: string;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  content: string[];
+  important?: boolean;
 }
 
+const termsSections: TermsSection[] = [
+  {
+    id: 'acceptance',
+    title: 'Acceptance of Terms',
+    icon: FileText,
+    content: [
+      'By accessing or using Fixly, you agree to be bound by these Terms of Service and all applicable laws and regulations.',
+      'If you do not agree with any part of these terms, you may not use our service.',
+      'These terms apply to all visitors, users, and others who access or use the service.'
+    ]
+  },
+  {
+    id: 'eligibility',
+    title: 'Who Can Use Fixly',
+    icon: Users,
+    content: [
+      'You must be at least 18 years old to use our platform.',
+      'You must be legally capable of entering into binding contracts.',
+      'You must provide accurate and complete information when creating an account.',
+      'You are responsible for maintaining the security of your account credentials.'
+    ]
+  },
+  {
+    id: 'platform',
+    title: 'How Our Platform Works', 
+    icon: Handshake,
+    content: [
+      'Fixly is a marketplace that connects customers with service professionals.',
+      'We do not directly provide repair or maintenance services.',
+      'All services are performed by independent contractors (fixers).',
+      'We facilitate communication, payments, and dispute resolution between parties.'
+    ]
+  },
+  {
+    id: 'responsibilities',
+    title: 'User Responsibilities',
+    icon: Shield,
+    content: [
+      'Provide accurate information in your profile and job postings.',
+      'Treat all users with respect and professionalism.',
+      'Follow all applicable laws and regulations.',
+      'Respect intellectual property rights of others.',
+      'Use the platform only for legitimate business purposes.'
+    ]
+  },
+  {
+    id: 'prohibited',
+    title: 'Prohibited Activities',
+    icon: AlertTriangle,
+    content: [
+      'Posting false, misleading, or fraudulent information.',
+      'Harassing, threatening, or discriminating against other users.',
+      'Attempting to circumvent our fee structure.',
+      'Using the platform for illegal activities.',
+      'Spamming or posting irrelevant content.',
+      'Attempting to damage or compromise our systems.'
+    ],
+    important: true
+  },
+  {
+    id: 'payments',
+    title: 'Payment Terms',
+    icon: Scale,
+    content: [
+      'Service fees are clearly displayed before booking confirmation.',
+      'Payments are processed securely through our payment partners.',
+      'Funds are held in escrow until job completion.',
+      'Refunds are subject to our refund policy and dispute resolution process.',
+      'Users are responsible for applicable taxes on their transactions.'
+    ]
+  }
+];
+
 export default function TermsOfServicePage() {
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [lastUpdated] = useState('January 10, 2025');
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSection(expandedSection === sectionId ? null : sectionId);
+  };
+
   return (
-    <Suspense fallback={
-      <PageLayout
-        title="Terms of Service"
-        description="The fine print that's actually readable! These terms govern how Fixly works – think of them as the rules of the game, but friendlier."
-      >
-        <section className="py-16 px-6">
-          <div className="container mx-auto max-w-4xl">
-            <div className="glass-card p-8 rounded-2xl text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-              <p className="text-text-secondary">Loading...</p>
+    <PageLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-20"
+        >
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center gap-2 glass-card px-6 py-3 rounded-full text-slate-700 font-medium mb-8"
+          >
+            <FileText className="w-5 h-5" />
+            Terms of Service
+          </motion.div>
+          
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-5xl md:text-6xl font-bold text-slate-900 mb-6"
+          >
+            Terms of Service
+            <br />
+            <span className="text-blue-600">Clear & Simple</span>
+          </motion.h1>
+          
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-xl text-slate-600 max-w-3xl mx-auto mb-8"
+          >
+            These terms govern your use of Fixly. We've written them in plain English to make sure 
+            you understand your rights and responsibilities.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-sm text-slate-500"
+          >
+            Last updated: {lastUpdated} • Effective immediately
+          </motion.div>
+        </motion.div>
+
+        {/* Quick Overview */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="glass-card rounded-3xl p-8 shadow-elevated hover-lift-subtle"
+          >
+            <h2 className="text-2xl font-bold text-slate-900 mb-6 text-center">
+              Quick Overview
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="bg-slate-100 p-4 rounded-2xl mb-4 inline-flex">
+                  <Handshake className="w-8 h-8 text-slate-600" />
+                </div>
+                <h3 className="font-semibold text-slate-900 mb-2">Fair & Transparent</h3>
+                <p className="text-sm text-slate-600">Clear rules that protect both customers and fixers</p>
+              </div>
+              <div className="text-center">
+                <div className="bg-blue-100 p-4 rounded-2xl mb-4 inline-flex">
+                  <Shield className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-slate-900 mb-2">Your Rights Protected</h3>
+                <p className="text-sm text-slate-600">Comprehensive protections for all platform users</p>
+              </div>
+              <div className="text-center">
+                <div className="bg-green-100 p-4 rounded-2xl mb-4 inline-flex">
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="font-semibold text-slate-900 mb-2">Easy to Understand</h3>
+                <p className="text-sm text-slate-600">No confusing legal jargon, just clear terms</p>
+              </div>
             </div>
+          </motion.div>
+        </div>
+
+        {/* Terms Sections */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+          <div className="space-y-4">
+            {termsSections.map((section, index) => (
+              <motion.div
+                key={section.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 + index * 0.1 }}
+                className={`bg-white/80 backdrop-blur-sm rounded-2xl border overflow-hidden shadow-lg hover:shadow-xl transition-shadow ${
+                  section.important ? 'border-red-200' : 'border-slate-200'
+                }`}
+              >
+                <button
+                  onClick={() => toggleSection(section.id)}
+                  className="w-full px-8 py-6 text-left flex items-center gap-4 hover:bg-slate-50/50 transition-colors"
+                >
+                  <div className={`p-3 rounded-2xl ${
+                    section.important 
+                      ? 'bg-red-100' 
+                      : 'bg-gradient-to-r from-slate-100 to-blue-100'
+                  }`}>
+                    <section.icon className={`w-6 h-6 ${
+                      section.important ? 'text-red-600' : 'text-slate-600'
+                    }`} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-slate-900 mb-1">{section.title}</h3>
+                    {section.important && (
+                      <p className="text-red-600 text-sm">Important - Please review carefully</p>
+                    )}
+                  </div>
+                  <motion.div
+                    animate={{ rotate: expandedSection === section.id ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <svg className="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </motion.div>
+                </button>
+                
+                <motion.div
+                  initial={false}
+                  animate={{
+                    height: expandedSection === section.id ? 'auto' : 0,
+                    opacity: expandedSection === section.id ? 1 : 0
+                  }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-8 pb-6 border-t border-slate-200">
+                    <div className="pt-6 space-y-4">
+                      {section.content.map((paragraph, paragraphIndex) => (
+                        <motion.p
+                          key={paragraphIndex}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: paragraphIndex * 0.05 }}
+                          className="text-slate-700 leading-relaxed"
+                        >
+                          {paragraph}
+                        </motion.p>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            ))}
           </div>
-        </section>
-      </PageLayout>
-    }>
-      <TermsOfServiceContent />
-    </Suspense>
-  )
+        </div>
+
+        {/* Legal Notice */}
+        <div className="bg-slate-100 py-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-3xl p-8 border border-slate-200"
+            >
+              <div className="text-center mb-6">
+                <Scale className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-slate-900">Legal Information</h2>
+              </div>
+              
+              <div className="space-y-4 text-slate-700">
+                <p>
+                  <strong>Governing Law:</strong> These terms are governed by the laws of India. 
+                  Any disputes will be resolved in the courts of Coimbatore, Tamil Nadu.
+                </p>
+                <p>
+                  <strong>Changes to Terms:</strong> We may update these terms from time to time. 
+                  We'll notify you of significant changes via email or platform notification.
+                </p>
+                <p>
+                  <strong>Severability:</strong> If any part of these terms is found to be unenforceable, 
+                  the remainder will continue to apply.
+                </p>
+                <p>
+                  <strong>Contact:</strong> Questions about these terms? Email us at{' '}
+                  <a href="mailto:legal@fixly.in" className="text-blue-600 font-medium hover:underline">
+                    legal@fixly.in
+                  </a>
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Contact Section */}
+        <div className="py-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-r from-slate-500 to-blue-600 rounded-3xl p-12 text-white"
+            >
+              <Mail className="w-12 h-12 mx-auto mb-6" />
+              <h2 className="text-3xl font-bold mb-4">
+                Questions About These Terms?
+              </h2>
+              <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+                We're here to help clarify anything that's unclear. Our legal team responds to all inquiries.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <motion.a
+                  href="mailto:legal@fixly.in"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-white text-slate-600 font-semibold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Contact Legal Team
+                </motion.a>
+                <motion.a
+                  href="/support"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="border-2 border-white text-white font-semibold py-4 px-8 rounded-2xl hover:bg-white hover:text-slate-600 transition-all duration-300"
+                >
+                  General Support
+                </motion.a>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </PageLayout>
+  );
 }

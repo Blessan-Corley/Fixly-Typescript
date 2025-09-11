@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
+import { motion, useMotionValue, useTransform, useAnimation } from 'framer-motion'
 import { Loader2, Wrench } from 'lucide-react'
 import { Logo } from './logo'
 import { useEffect, useState } from 'react'
@@ -31,7 +31,7 @@ export function Loading({
       transition: {
         duration: 1,
         repeat: Infinity,
-        ease: "linear"
+        ease: "linear" as const
       }
     }
   }
@@ -44,7 +44,7 @@ export function Loading({
       transition: {
         duration: 1,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "easeInOut" as const
       }
     }
   }
@@ -56,10 +56,10 @@ export function Loading({
           variants={spinnerVariants}
           animate="spin"
         >
-          <Loader2 className={`text-primary ${sizeClasses[size]}`} />
+          <Loader2 className={`text-slate-900 ${sizeClasses[size]}`} />
         </motion.div>
         {message && (
-          <span className="text-text-secondary text-sm font-medium">{message}</span>
+          <span className="text-slate-600 text-sm font-medium">{message}</span>
         )}
       </div>
     )
@@ -74,9 +74,9 @@ export function Loading({
               variants={spinnerVariants}
               animate="spin"
             >
-              <Loader2 className="w-10 h-10 text-primary" />
+              <Loader2 className="w-10 h-10 text-slate-900" />
             </motion.div>
-            <p className="text-text-secondary font-medium">{message}</p>
+            <p className="text-slate-600 font-medium">{message}</p>
           </div>
         </div>
       </div>
@@ -105,7 +105,7 @@ export function Loading({
         >
           <div className="flex items-center gap-3">
             <motion.div
-              className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center"
+              className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center"
               animate={{ 
                 scale: [1, 1.1, 1],
                 rotate: [0, 5, -5, 0]
@@ -135,7 +135,7 @@ export function Loading({
         </motion.div>
 
         <motion.p 
-          className="text-text-secondary font-medium text-center"
+          className="text-slate-600 font-medium text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -152,7 +152,7 @@ export function Loading({
         <div className="glass-card p-8 rounded-2xl shadow-2xl max-w-md w-full">
           <div className="text-center">
             <motion.div
-              className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center"
+              className="w-16 h-16 mx-auto mb-6 bg-slate-900 rounded-2xl flex items-center justify-center"
               animate={{ 
                 scale: [1, 1.1, 1],
                 rotate: [0, 360]
@@ -166,7 +166,7 @@ export function Loading({
             </motion.div>
             
             <motion.h3 
-              className="text-xl font-bold text-text-primary mb-2"
+              className="text-xl font-bold text-text-slate-900 mb-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
@@ -175,7 +175,7 @@ export function Loading({
             </motion.h3>
             
             <motion.p 
-              className="text-text-secondary text-sm"
+              className="text-slate-600 text-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
@@ -215,9 +215,9 @@ export function Loading({
         variants={spinnerVariants}
         animate="spin"
       >
-        <Loader2 className={`text-primary ${sizeClasses[size]}`} />
+        <Loader2 className={`text-slate-900 ${sizeClasses[size]}`} />
       </motion.div>
-      <p className="text-text-secondary font-medium">{message}</p>
+      <p className="text-slate-600 font-medium">{message}</p>
     </div>
   )
 }
@@ -252,7 +252,7 @@ interface RadialLoadingProps {
 export function RadialLoading({ 
   size = 120, 
   duration = 3, 
-  color = 'rgb(6, 182, 212)', // cyan-500 to match your site's primary color
+  color = 'rgb(99, 102, 241)', // Your website's primary purple color
   backgroundColor = 'rgba(15, 23, 42, 0.95)', // dark background
   className = '',
   onComplete 
@@ -260,100 +260,161 @@ export function RadialLoading({
   const [isVisible, setIsVisible] = useState(true)
   const progress = useMotionValue(0)
   const pathLength = useTransform(progress, [0, 100], [0, 1])
-  const opacity = useTransform(progress, [0, 50, 100], [0.3, 0.7, 1])
-  const blur = useTransform(progress, [0, 100], [8, 0])
   
-  // Calculate circle properties
+  // Enhanced blur and scale animations
+  const blur = useTransform(progress, [0, 30, 70, 100], [12, 8, 2, 0])
+  const numberOpacity = useTransform(progress, [0, 20, 80, 100], [0.1, 0.3, 0.8, 1])
+  const numberScale = useTransform(progress, [0, 100], [0.3, 1])
+  const ringScale = useTransform(progress, [0, 100], [0.8, 1])
+  const glowOpacity = useTransform(progress, [0, 50, 100], [0.2, 0.6, 1])
+  
+  // Calculate circle properties with thicker stroke
   const center = size / 2
-  const radius = center - 8 // Account for stroke width
+  const radius = center - 12 // More space for thicker stroke
   const circumference = 2 * Math.PI * radius
 
   useEffect(() => {
-    const controls = animate(progress, 100, {
-      duration: duration,
-      ease: [0.25, 0.46, 0.45, 0.94], // Custom easing for smooth animation
-      onComplete: () => {
-        setTimeout(() => {
-          setIsVisible(false)
-          onComplete?.()
-        }, 200)
+    let timeoutId: NodeJS.Timeout
+    
+    const animateProgress = async () => {
+      progress.set(0)
+      
+      const animate = () => {
+        return new Promise<void>((resolve) => {
+          const startTime = Date.now()
+          const animate = () => {
+            const elapsed = Date.now() - startTime
+            const progressValue = Math.min((elapsed / (duration * 1000)) * 100, 100)
+            progress.set(progressValue)
+            
+            if (progressValue >= 100) {
+              timeoutId = setTimeout(() => {
+                setIsVisible(false)
+                onComplete?.()
+              }, 200)
+              resolve()
+            } else {
+              requestAnimationFrame(animate)
+            }
+          }
+          animate()
+        })
       }
-    })
-
-    return controls.stop
+      
+      await animate()
+    }
+    
+    animateProgress()
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
   }, [progress, duration, onComplete])
-
-  if (!isVisible) return null
 
   return (
     <motion.div
       className={`fixed inset-0 z-50 flex items-center justify-center ${className}`}
-      style={{ backgroundColor }}
+      style={{ backgroundColor, display: isVisible ? 'flex' : 'none' }}
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      animate={{ opacity: isVisible ? 1 : 0 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="relative" style={{ width: size, height: size }}>
-        {/* Progress Circle */}
+      <motion.div 
+        className="relative" 
+        style={{ width: size, height: size, scale: ringScale }}
+      >
+        {/* Enhanced Progress Circle */}
         <svg
           width={size}
           height={size}
           viewBox={`0 0 ${size} ${size}`}
           className="transform -rotate-90"
         >
-          {/* Background Circle */}
+          {/* Background Circle - Thicker and more visible */}
           <circle
             cx={center}
             cy={center}
             r={radius}
-            stroke="rgba(148, 163, 184, 0.2)"
-            strokeWidth="6"
+            stroke="rgba(148, 163, 184, 0.15)"
+            strokeWidth="10"
             fill="transparent"
           />
           
-          {/* Progress Circle */}
+          {/* Progress Circle - Much thicker with enhanced glow */}
           <motion.circle
             cx={center}
             cy={center}
             r={radius}
             stroke={color}
-            strokeWidth="6"
+            strokeWidth="10"
             fill="transparent"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={useTransform(pathLength, [0, 1], [circumference, 0])}
             style={{
-              filter: `drop-shadow(0 0 8px ${color}40)`,
+              filter: `drop-shadow(0 0 12px ${color}60) drop-shadow(0 0 24px ${color}30)`,
+            }}
+          />
+          
+          {/* Inner glow circle */}
+          <motion.circle
+            cx={center}
+            cy={center}
+            r={radius - 5}
+            stroke={color}
+            strokeWidth="2"
+            fill="transparent"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={useTransform(pathLength, [0, 1], [circumference, 0])}
+            style={{
+              opacity: glowOpacity,
+              filter: `blur(1px)`,
             }}
           />
         </svg>
 
-        {/* Center Number with Blur Effect */}
+        {/* Center Number with Enhanced Blur Effect */}
         <motion.div 
           className="absolute inset-0 flex items-center justify-center"
           style={{
             filter: useTransform(blur, (v) => `blur(${v}px)`),
-            opacity: opacity
+            opacity: numberOpacity,
+            scale: numberScale
           }}
         >
           <motion.span
-            className="text-4xl font-bold tracking-wide"
-            style={{ color }}
+            className="text-5xl font-bold tracking-wide"
+            style={{ 
+              color,
+              textShadow: `0 0 20px ${color}40`
+            }}
           >
             {useTransform(progress, (v) => Math.round(v))}
           </motion.span>
         </motion.div>
 
-        {/* Glowing Effect */}
+        {/* Enhanced Glowing Effect */}
         <motion.div
           className="absolute inset-0 rounded-full"
           style={{
-            background: `radial-gradient(circle, ${color}15 0%, transparent 70%)`,
-            opacity: useTransform(progress, [0, 100], [0.5, 1])
+            background: `radial-gradient(circle, ${color}20 0%, ${color}10 40%, transparent 70%)`,
+            opacity: glowOpacity,
+            scale: useTransform(progress, [0, 100], [0.5, 1.1])
           }}
         />
-      </div>
+        
+        {/* Outer pulse effect */}
+        <motion.div
+          className="absolute inset-0 rounded-full border-2"
+          style={{
+            borderColor: `${color}30`,
+            scale: useTransform(progress, [0, 100], [1.1, 1.3]),
+            opacity: useTransform(progress, [0, 50, 100], [0, 0.5, 0])
+          }}
+        />
+      </motion.div>
     </motion.div>
   )
 }
@@ -362,31 +423,51 @@ export function RadialLoading({
 export function RadialSpinner({ 
   size = 80, 
   duration = 2,
-  color = 'rgb(6, 182, 212)',
+  color = 'rgb(99, 102, 241)', // Consistent with website primary color
   className = ''
 }: Omit<RadialLoadingProps, 'backgroundColor' | 'onComplete'>) {
   const progress = useMotionValue(0)
   const pathLength = useTransform(progress, [0, 100], [0, 1])
-  const blur = useTransform(progress, [0, 100], [4, 0])
-  const opacity = useTransform(progress, [0, 50, 100], [0.4, 0.8, 1])
+  const blur = useTransform(progress, [0, 30, 70, 100], [8, 6, 2, 0])
+  const numberOpacity = useTransform(progress, [0, 20, 80, 100], [0.2, 0.4, 0.8, 1])
+  const numberScale = useTransform(progress, [0, 100], [0.5, 1])
+  const ringScale = useTransform(progress, [0, 100], [0.9, 1])
   
   const center = size / 2
-  const radius = center - 4
+  const radius = center - 8 // More space for thicker stroke
   const circumference = 2 * Math.PI * radius
 
   useEffect(() => {
-    const controls = animate(progress, 100, {
-      duration: duration,
-      ease: [0.25, 0.46, 0.45, 0.94],
-      repeat: Infinity,
-      repeatType: 'restart'
-    })
-
-    return controls.stop
+    let animationId: number
+    
+    const animateProgress = () => {
+      progress.set(0)
+      const startTime = Date.now()
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime
+        const cycle = elapsed % (duration * 1000)
+        const progressValue = (cycle / (duration * 1000)) * 100
+        progress.set(progressValue)
+        
+        animationId = requestAnimationFrame(animate)
+      }
+      
+      animate()
+    }
+    
+    animateProgress()
+    
+    return () => {
+      if (animationId) cancelAnimationFrame(animationId)
+    }
   }, [progress, duration])
 
   return (
-    <div className={`relative flex items-center justify-center ${className}`} style={{ width: size, height: size }}>
+    <motion.div 
+      className={`relative flex items-center justify-center ${className}`} 
+      style={{ width: size, height: size, scale: ringScale }}
+    >
       <svg
         width={size}
         height={size}
@@ -397,8 +478,8 @@ export function RadialSpinner({
           cx={center}
           cy={center}
           r={radius}
-          stroke="rgba(148, 163, 184, 0.2)"
-          strokeWidth="4"
+          stroke="rgba(148, 163, 184, 0.15)"
+          strokeWidth="6"
           fill="transparent"
         />
         
@@ -407,13 +488,13 @@ export function RadialSpinner({
           cy={center}
           r={radius}
           stroke={color}
-          strokeWidth="4"
+          strokeWidth="6"
           fill="transparent"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={useTransform(pathLength, [0, 1], [circumference, 0])}
           style={{
-            filter: `drop-shadow(0 0 6px ${color}40)`,
+            filter: `drop-shadow(0 0 8px ${color}50) drop-shadow(0 0 16px ${color}25)`,
           }}
         />
       </svg>
@@ -422,17 +503,21 @@ export function RadialSpinner({
         className="absolute inset-0 flex items-center justify-center"
         style={{
           filter: useTransform(blur, (v) => `blur(${v}px)`),
-          opacity: opacity
+          opacity: numberOpacity,
+          scale: numberScale
         }}
       >
         <motion.span
           className="text-2xl font-bold"
-          style={{ color }}
+          style={{ 
+            color,
+            textShadow: `0 0 12px ${color}30`
+          }}
         >
           {useTransform(progress, (v) => Math.round(v))}
         </motion.span>
       </motion.div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -455,7 +540,7 @@ export function RadialPageLoading({
       />
       
       <motion.p 
-        className="text-text-secondary font-medium mt-8 text-lg"
+        className="text-slate-600 font-medium mt-8 text-lg"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.6 }}

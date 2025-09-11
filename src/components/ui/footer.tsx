@@ -16,31 +16,26 @@ import {
   ExternalLink
 } from 'lucide-react'
 import { Logo } from './logo'
+import { ThemeToggle } from './theme-toggle'
 
 const footerLinks = {
   platform: [
     { name: 'Find Services', href: '/services' },
     { name: 'How It Works', href: '/how-it-works' },
     { name: 'Pricing', href: '/pricing' },
-    { name: 'For Businesses', href: '/business' },
+    { name: 'Search Jobs', href: '/search' },
   ],
   support: [
-    { name: 'Help Center', href: '/help' },
-    { name: 'Safety', href: '/safety' },
+    { name: 'Help & Support', href: '/support' },
+    { name: 'Safety Guidelines', href: '/safety' },
     { name: 'Contact Us', href: '/contact' },
-    { name: 'Status', href: '/status' },
+    { name: 'Resources', href: '/resources' },
   ],
   company: [
     { name: 'About Us', href: '/about' },
-    { name: 'Careers', href: '/careers' },
-    { name: 'Press', href: '/press' },
-    { name: 'Blog', href: '/blog' },
-  ],
-  legal: [
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
+    { name: 'Privacy Policy', href: '/privacy-policy' },
+    { name: 'Terms of Service', href: '/terms-of-service' },
     { name: 'Cookie Policy', href: '/cookies' },
-    { name: 'Accessibility', href: '/accessibility' },
   ]
 }
 
@@ -52,18 +47,18 @@ const socialLinks = [
 ]
 
 const contactInfo = [
-  { icon: Phone, label: '+91 98765 43210', href: 'tel:+919876543210' },
-  { icon: Mail, label: 'hello@fixly.com', href: 'mailto:hello@fixly.com' },
-  { icon: MapPin, label: 'Mumbai, Maharashtra, India', href: 'https://maps.google.com' },
+  { icon: Phone, label: '+91 9976768211', href: 'tel:+919976768211' },
+  { icon: Mail, label: 'blessancorley@gmail.com', href: 'mailto:blessancorley@gmail.com' },
+  { icon: MapPin, label: 'Coimbatore, Tamil Nadu, India', href: 'https://maps.google.com' },
 ]
 
 function NewsletterSignup() {
   return (
-    <div className="glass-card p-6 rounded-2xl">
-      <h3 className="text-lg font-semibold text-text-primary mb-2">
+    <div className="card-glass">
+      <h3 className="heading-md text-primary mb-2">
         Stay Updated
       </h3>
-      <p className="text-text-secondary text-sm mb-4">
+      <p className="text-secondary text-sm mb-4">
         Get the latest updates on new services and special offers.
       </p>
       
@@ -71,12 +66,12 @@ function NewsletterSignup() {
         <input
           type="email"
           placeholder="Enter your email"
-          className="flex-1 px-4 py-2.5 bg-input border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+          className="input flex-1"
         />
         <motion.button
-          className="px-4 py-2.5 bg-gradient-to-r from-primary to-accent text-white rounded-lg hover:shadow-glow-primary transition-all duration-300"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          className="btn-base btn-primary hover-glow"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
         >
           <ArrowRight className="w-4 h-4" />
         </motion.button>
@@ -88,7 +83,7 @@ function NewsletterSignup() {
 function FooterSection({ title, links }: { title: string, links: { name: string, href: string }[] }) {
   return (
     <div>
-      <h3 className="text-base font-semibold text-text-primary mb-4">
+      <h3 className="heading-sm text-primary mb-4">
         {title}
       </h3>
       <ul className="space-y-3">
@@ -96,7 +91,7 @@ function FooterSection({ title, links }: { title: string, links: { name: string,
           <li key={link.name}>
             <Link
               href={link.href}
-              className="text-sm text-text-secondary hover:text-primary transition-colors duration-200 flex items-center gap-1 group"
+              className="text-sm text-secondary hover:text-primary transition-all duration-200 flex items-center gap-1 group hover-glow"
             >
               {link.name}
               {link.href.startsWith('http') && (
@@ -112,16 +107,16 @@ function FooterSection({ title, links }: { title: string, links: { name: string,
 
 export function Footer() {
   return (
-    <footer className="bg-surface border-t border-border-subtle">
-      <div className="container mx-auto px-6">
+    <footer className="bg-background border-t border-subtle">
+      <div className="container">
         {/* Main Footer Content */}
-        <div className="py-16">
+        <div className="py-spacing-xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Brand & Newsletter */}
             <div className="lg:col-span-4 space-y-6">
               <div>
                 <Logo size="lg" />
-                <p className="text-text-secondary mt-4 leading-relaxed">
+                <p className="text-secondary mt-4 leading-relaxed">
                   Connect with skilled professionals for all your home and service needs. 
                   Built with cutting-edge technology for the ultimate user experience.
                 </p>
@@ -135,7 +130,7 @@ export function Footer() {
                     <motion.a
                       key={contact.label}
                       href={contact.href}
-                      className="flex items-center gap-3 text-sm text-text-secondary hover:text-primary transition-colors group"
+                      className="flex items-center gap-3 text-sm text-secondary hover:text-primary transition-all duration-200 group hover-glow"
                       whileHover={{ x: 4 }}
                     >
                       <Icon className="w-4 h-4" />
@@ -155,9 +150,9 @@ export function Footer() {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 rounded-lg glass flex items-center justify-center text-text-muted hover:text-primary hover:shadow-glow-primary transition-all duration-300"
-                      whileHover={{ scale: 1.1, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
+                      className="w-10 h-10 rounded-lg glass-strong flex items-center justify-center text-muted hover:text-primary hover-lift-subtle"
+                      whileHover={{ scale: 1.01, y: -1 }}
+                      whileTap={{ scale: 0.99 }}
                     >
                       <Icon className="w-4 h-4" />
                     </motion.a>
@@ -167,11 +162,10 @@ export function Footer() {
             </div>
 
             {/* Links Sections */}
-            <div className="lg:col-span-6 grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="lg:col-span-6 grid grid-cols-1 md:grid-cols-3 gap-8">
               <FooterSection title="Platform" links={footerLinks.platform} />
               <FooterSection title="Support" links={footerLinks.support} />
-              <FooterSection title="Company" links={footerLinks.company} />
-              <FooterSection title="Legal" links={footerLinks.legal} />
+              <FooterSection title="Legal" links={footerLinks.company} />
             </div>
 
             {/* Newsletter */}
@@ -182,9 +176,9 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="py-6 border-t border-border-subtle">
+        <div className="py-spacing-md border-t border-subtle">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-1 text-sm text-text-muted">
+            <div className="flex items-center gap-1 text-sm text-muted">
               <span>Made with</span>
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
@@ -195,29 +189,32 @@ export function Footer() {
               <span>in India</span>
             </div>
 
-            <div className="text-sm text-text-muted">
+            <div className="text-sm text-muted">
               © {new Date().getFullYear()} Fixly. All rights reserved.
             </div>
 
             <div className="flex items-center gap-6 text-sm">
               <Link
-                href="/privacy"
-                className="text-text-muted hover:text-primary transition-colors"
+                href="/privacy-policy"
+                className="text-muted hover:text-primary transition-all duration-200 hover-glow"
               >
                 Privacy
               </Link>
               <Link
-                href="/terms"
-                className="text-text-muted hover:text-primary transition-colors"
+                href="/terms-of-service"
+                className="text-muted hover:text-primary transition-all duration-200 hover-glow"
               >
                 Terms
               </Link>
               <Link
                 href="/cookies"
-                className="text-text-muted hover:text-primary transition-colors"
+                className="text-muted hover:text-primary transition-all duration-200 hover-glow"
               >
                 Cookies
               </Link>
+              <div className="border-l border-border-subtle pl-4">
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         </div>

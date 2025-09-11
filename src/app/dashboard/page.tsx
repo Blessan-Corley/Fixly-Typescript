@@ -46,8 +46,8 @@ export default function DashboardPage() {
       label: mockUser.role === 'fixer' ? 'Jobs Completed' : 'Jobs Posted',
       value: mockUser.role === 'fixer' ? '42' : '12',
       icon: TrendingUp,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10'
+      color: 'text-slate-700',
+      bgColor: 'bg-slate-100'
     },
     {
       label: 'Rating',
@@ -60,8 +60,8 @@ export default function DashboardPage() {
       label: mockUser.role === 'fixer' ? 'This Month' : 'Active Jobs',
       value: mockUser.role === 'fixer' ? '8' : '3',
       icon: Calendar,
-      color: 'text-accent',
-      bgColor: 'bg-accent/10'
+      color: 'text-slate-700',
+      bgColor: 'bg-slate-100'
     },
     {
       label: 'Messages',
@@ -82,8 +82,8 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="glass border-b border-border-subtle">
-        <div className="container mx-auto px-6 py-4">
+      <header className="glass-strong border-b border-subtle">
+        <div className="container py-spacing-md">
           <div className="flex items-center justify-between">
             <Logo size="md" />
             
@@ -91,31 +91,31 @@ export default function DashboardPage() {
               <Link href="/dashboard" className="text-primary font-medium">
                 Dashboard
               </Link>
-              <Link href="/jobs" className="text-text-secondary hover:text-primary transition-colors">
+              <Link href="/jobs" className="btn-base btn-ghost hover-glow">
                 {mockUser.role === 'fixer' ? 'Find Jobs' : 'My Jobs'}
               </Link>
-              <Link href="/messages" className="text-text-secondary hover:text-primary transition-colors">
+              <Link href="/messages" className="btn-base btn-ghost hover-glow">
                 Messages
               </Link>
-              <Link href="/profile" className="text-text-secondary hover:text-primary transition-colors">
+              <Link href="/profile" className="btn-base btn-ghost hover-glow">
                 Profile
               </Link>
             </nav>
 
             <div className="flex items-center gap-3">
               <ThemeToggle />
-              <button className="relative p-2 rounded-xl glass hover:shadow-glass-hover transition-all">
-                <Bell className="w-5 h-5 text-text-secondary" />
+              <button className="relative p-2 rounded-xl glass-strong hover-lift-subtle">
+                <Bell className="w-5 h-5 text-secondary" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-error rounded-full" />
               </button>
               
               {/* User Menu */}
               <div className="relative">
-                <button className="flex items-center gap-3 p-2 rounded-xl glass hover:shadow-glass-hover transition-all">
-                  <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center text-white font-medium text-sm">
+                <button className="flex items-center gap-3 p-2 rounded-xl glass-strong hover-lift-subtle">
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-medium text-sm">
                     {mockUser.name.charAt(0)}
                   </div>
-                  <span className="font-medium text-text-primary hidden sm:block">
+                  <span className="font-medium text-primary hidden sm:block">
                     {mockUser.name}
                   </span>
                 </button>
@@ -126,7 +126,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
+      <main className="container py-spacing-xl">
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -134,9 +134,9 @@ export default function DashboardPage() {
           transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <div className="glass-card p-6 rounded-2xl">
+          <div className="card-glass">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center text-white">
+              <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white">
                 {mockUser.role === 'fixer' ? (
                   <Wrench className="w-8 h-8" />
                 ) : (
@@ -144,10 +144,10 @@ export default function DashboardPage() {
                 )}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-text-primary">
+                <h1 className="heading-xl text-primary">
                   Welcome back, {mockUser.name}!
                 </h1>
-                <p className="text-text-secondary">
+                <p className="text-secondary">
                   {mockUser.role === 'fixer' 
                     ? 'Ready to help customers with your skills?' 
                     : 'Find skilled professionals for your needs'
@@ -157,11 +157,11 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2 text-text-secondary">
+              <div className="flex items-center gap-2 text-secondary">
                 <MapPin className="w-4 h-4" />
                 <span>{mockUser.location.city}, {mockUser.location.state}</span>
               </div>
-              <div className="flex items-center gap-2 text-text-secondary">
+              <div className="flex items-center gap-2 text-secondary">
                 <Calendar className="w-4 h-4" />
                 <span>Member since {mockUser.joinedDate}</span>
               </div>
@@ -179,7 +179,7 @@ export default function DashboardPage() {
           {quickStats.map((stat, index) => {
             const Icon = stat.icon
             return (
-              <div key={stat.label} className="glass-card p-4 rounded-xl">
+              <div key={stat.label} className="card-glass hover-lift-subtle">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
                     <Icon className={`w-5 h-5 ${stat.color}`} />
@@ -188,7 +188,7 @@ export default function DashboardPage() {
                     <div className={`text-lg font-bold ${stat.color}`}>
                       {stat.value}
                     </div>
-                    <div className="text-xs text-text-muted">
+                    <div className="text-xs text-slate-500">
                       {stat.label}
                     </div>
                   </div>
@@ -207,38 +207,38 @@ export default function DashboardPage() {
             className="lg:col-span-2"
           >
             <div className="glass-card p-6 rounded-2xl">
-              <h2 className="text-xl font-bold text-text-primary mb-4">
+              <h2 className="text-xl font-bold text-slate-900 mb-4">
                 Profile Overview
               </h2>
               
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-text-secondary">Full Name</label>
-                    <p className="font-medium text-text-primary">{mockUser.name}</p>
+                    <label className="text-sm font-medium text-slate-600">Full Name</label>
+                    <p className="font-medium text-slate-900">{mockUser.name}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-text-secondary">Username</label>
-                    <p className="font-medium text-text-primary">@{mockUser.username}</p>
+                    <label className="text-sm font-medium text-slate-600">Username</label>
+                    <p className="font-medium text-slate-900">@{mockUser.username}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-text-secondary">Email</label>
-                    <p className="font-medium text-text-primary">{mockUser.email}</p>
+                    <label className="text-sm font-medium text-slate-600">Email</label>
+                    <p className="font-medium text-slate-900">{mockUser.email}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-text-secondary">Phone</label>
-                    <p className="font-medium text-text-primary">{mockUser.mobile}</p>
+                    <label className="text-sm font-medium text-slate-600">Phone</label>
+                    <p className="font-medium text-slate-900">{mockUser.mobile}</p>
                   </div>
                 </div>
 
                 {mockUser.role === 'fixer' && (
                   <div>
-                    <label className="text-sm font-medium text-text-secondary mb-2 block">Skills</label>
+                    <label className="text-sm font-medium text-slate-600 mb-2 block">Skills</label>
                     <div className="flex flex-wrap gap-2">
                       {mockUser.skills.map((skill) => (
                         <span 
                           key={skill}
-                          className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                          className="badge badge-primary"
                         >
                           {skill}
                         </span>
@@ -248,10 +248,10 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <div className="mt-6 pt-4 border-t border-border-subtle">
+              <div className="mt-6 pt-4 border-t border-slate-200">
                 <Link
                   href="/profile/edit"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-xl font-medium hover:shadow-glow-primary transition-all duration-300"
+                  className="btn-base btn-primary hover-glow"
                 >
                   <Settings className="w-4 h-4" />
                   Edit Profile
@@ -267,28 +267,28 @@ export default function DashboardPage() {
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <div className="glass-card p-6 rounded-2xl">
-              <h2 className="text-xl font-bold text-text-primary mb-4">
+              <h2 className="heading-lg text-primary mb-4">
                 Recent Activity
               </h2>
               
               <div className="space-y-3">
                 {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 rounded-xl glass">
+                  <div key={index} className="flex items-start gap-3 p-3 rounded-xl glass-strong">
                     <div className={`w-2 h-2 rounded-full mt-2 ${
                       activity.type === 'success' ? 'bg-green-500' : 'bg-blue-500'
                     }`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-text-primary">{activity.text}</p>
-                      <p className="text-xs text-text-muted mt-1">{activity.time}</p>
+                      <p className="text-sm text-slate-900">{activity.text}</p>
+                      <p className="text-xs text-slate-500 mt-1">{activity.time}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-4 pt-4 border-t border-border-subtle">
+              <div className="mt-4 pt-4 border-t border-slate-200">
                 <Link
                   href="/activity"
-                  className="text-sm text-primary hover:text-primary-600 font-medium transition-colors"
+                  className="text-sm text-slate-700 hover:text-slate-900 font-medium transition-colors"
                 >
                   View all activity →
                 </Link>
@@ -305,7 +305,7 @@ export default function DashboardPage() {
           className="mt-8"
         >
           <div className="glass-card p-6 rounded-2xl">
-            <h2 className="text-xl font-bold text-text-primary mb-4">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">
               Quick Actions
             </h2>
             
@@ -316,19 +316,19 @@ export default function DashboardPage() {
                     href="/jobs/browse"
                     className="flex flex-col items-center gap-2 p-4 rounded-xl glass hover:shadow-glass-hover transition-all text-center group"
                   >
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <Wrench className="w-6 h-6 text-primary" />
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:bg-slate-200 transition-colors">
+                      <Wrench className="w-6 h-6 text-slate-600" />
                     </div>
-                    <span className="text-sm font-medium text-text-primary">Find Jobs</span>
+                    <span className="text-sm font-medium text-slate-900">Find Jobs</span>
                   </Link>
                   <Link
                     href="/profile/skills"
                     className="flex flex-col items-center gap-2 p-4 rounded-xl glass hover:shadow-glass-hover transition-all text-center group"
                   >
-                    <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                      <Star className="w-6 h-6 text-accent" />
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:bg-slate-200 transition-colors">
+                      <Star className="w-6 h-6 text-slate-600" />
                     </div>
-                    <span className="text-sm font-medium text-text-primary">Update Skills</span>
+                    <span className="text-sm font-medium text-slate-900">Update Skills</span>
                   </Link>
                 </>
               ) : (
@@ -337,19 +337,19 @@ export default function DashboardPage() {
                     href="/jobs/post"
                     className="flex flex-col items-center gap-2 p-4 rounded-xl glass hover:shadow-glass-hover transition-all text-center group"
                   >
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <UserCheck className="w-6 h-6 text-primary" />
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:bg-slate-200 transition-colors">
+                      <UserCheck className="w-6 h-6 text-slate-600" />
                     </div>
-                    <span className="text-sm font-medium text-text-primary">Post Job</span>
+                    <span className="text-sm font-medium text-slate-900">Post Job</span>
                   </Link>
                   <Link
                     href="/browse-fixers"
                     className="flex flex-col items-center gap-2 p-4 rounded-xl glass hover:shadow-glass-hover transition-all text-center group"
                   >
-                    <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                      <User className="w-6 h-6 text-accent" />
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:bg-slate-200 transition-colors">
+                      <User className="w-6 h-6 text-slate-600" />
                     </div>
-                    <span className="text-sm font-medium text-text-primary">Find Fixers</span>
+                    <span className="text-sm font-medium text-slate-900">Find Fixers</span>
                   </Link>
                 </>
               )}
@@ -361,7 +361,7 @@ export default function DashboardPage() {
                 <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
                   <MessageCircle className="w-6 h-6 text-blue-500" />
                 </div>
-                <span className="text-sm font-medium text-text-primary">Messages</span>
+                <span className="text-sm font-medium text-slate-900">Messages</span>
               </Link>
               
               <Link
@@ -371,7 +371,7 @@ export default function DashboardPage() {
                 <div className="w-12 h-12 bg-gray-500/10 rounded-xl flex items-center justify-center group-hover:bg-gray-500/20 transition-colors">
                   <Settings className="w-6 h-6 text-gray-500" />
                 </div>
-                <span className="text-sm font-medium text-text-primary">Settings</span>
+                <span className="text-sm font-medium text-slate-900">Settings</span>
               </Link>
             </div>
           </div>
@@ -384,16 +384,16 @@ export default function DashboardPage() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="mt-8"
         >
-          <div className="glass-card p-6 rounded-2xl border-l-4 border-l-primary">
+          <div className="glass-card p-6 rounded-2xl border-l-4 border-l-slate-700">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Bell className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Bell className="w-5 h-5 text-slate-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-text-primary mb-2">
+                <h3 className="font-semibold text-slate-900 mb-2">
                   🎉 Signup Completed Successfully!
                 </h3>
-                <p className="text-text-secondary text-sm mb-4">
+                <p className="text-slate-600 text-sm mb-4">
                   This is a demo dashboard showing what your Fixly experience would look like. 
                   The signup flow with email verification, password setup, profile creation, 
                   skills selection, and location setup is fully functional with comprehensive 
@@ -402,19 +402,19 @@ export default function DashboardPage() {
                 <div className="flex flex-wrap gap-2">
                   <Link
                     href="/auth/signup"
-                    className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
                   >
                     Try Signup Again
                   </Link>
                   <Link
                     href="/auth/signin"
-                    className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 text-accent rounded-lg text-sm font-medium hover:bg-accent/20 transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
                   >
                     Test Login Page
                   </Link>
                   <Link
                     href="/"
-                    className="inline-flex items-center gap-2 px-3 py-1 glass border border-border rounded-lg text-sm font-medium hover:shadow-glass-hover transition-all"
+                    className="inline-flex items-center gap-2 px-3 py-1 glass border border-slate-200 rounded-lg text-sm font-medium hover:shadow-glass-hover transition-all"
                   >
                     <Home className="w-4 h-4" />
                     Back to Home

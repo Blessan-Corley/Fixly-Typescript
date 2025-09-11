@@ -105,16 +105,16 @@ export function Modal({
             {(title || showCloseButton) && (
               <div className="flex items-center justify-between p-6 border-b border-border-subtle">
                 {title && (
-                  <h2 className="text-xl font-bold text-text-primary">{title}</h2>
+                  <h2 className="text-xl font-bold text-slate-900">{title}</h2>
                 )}
                 {showCloseButton && (
                   <motion.button
                     onClick={onClose}
                     className="p-2 rounded-xl hover:bg-surface-elevated transition-colors"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                   >
-                    <X className="w-5 h-5 text-text-muted hover:text-text-primary transition-colors" />
+                    <X className="w-5 h-5 text-slate-500 hover:text-slate-900 transition-colors" />
                   </motion.button>
                 )}
               </div>
@@ -153,9 +153,9 @@ export function ConfirmModal({
   variant = 'default'
 }: ConfirmModalProps) {
   const variantStyles = {
-    default: 'from-primary to-accent',
-    danger: 'from-error to-red-600',
-    warning: 'from-warning to-orange-600'
+    default: 'from-slate-900 to-slate-700',
+    danger: 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
+    warning: 'from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700'
   }
 
   return (
@@ -167,16 +167,16 @@ export function ConfirmModal({
     >
       <div className="text-center space-y-6">
         <div>
-          <h3 className="text-lg font-bold text-text-primary mb-2">{title}</h3>
-          <p className="text-text-secondary">{message}</p>
+          <h3 className="text-lg font-bold text-slate-900 mb-2">{title}</h3>
+          <p className="text-slate-600">{message}</p>
         </div>
 
         <div className="flex gap-3">
           <motion.button
             onClick={onClose}
-            className="flex-1 px-4 py-2 glass rounded-xl border border-border-subtle hover:shadow-glass-hover transition-all duration-300"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="flex-1 px-4 py-3 bg-surface-elevated text-slate-900 border border-border-subtle rounded-xl hover:bg-surface-secondary hover:border-border transition-all duration-200 font-medium"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
           >
             {cancelText}
           </motion.button>
@@ -185,9 +185,9 @@ export function ConfirmModal({
               onConfirm()
               onClose()
             }}
-            className={`flex-1 px-4 py-2 bg-gradient-to-r ${variantStyles[variant]} text-white rounded-xl font-medium hover:shadow-glow-primary transition-all duration-300`}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className={`flex-1 px-4 py-3 bg-gradient-to-r ${variantStyles[variant]} text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200`}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
           >
             {confirmText}
           </motion.button>

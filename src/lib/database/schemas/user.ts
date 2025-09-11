@@ -86,10 +86,8 @@ const UserSchema = new Schema<User>({
   email: {
     type: String,
     required: true,
-    unique: true,
     lowercase: true,
     trim: true,
-    index: true,
     validate: {
       validator: function(email: string) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -100,12 +98,10 @@ const UserSchema = new Schema<User>({
   username: {
     type: String,
     required: true,
-    unique: true,
     lowercase: true,
     trim: true,
     minlength: 3,
     maxlength: 30,
-    index: true,
     validate: {
       validator: function(username: string) {
         return /^[a-z0-9_]+$/.test(username) && !/(.)\1{2,}/.test(username)
@@ -129,7 +125,6 @@ const UserSchema = new Schema<User>({
   phone: {
     type: String,
     required: true,
-    unique: true,
     validate: {
       validator: function(phone: string) {
         const cleaned = phone.replace(/\D/g, '')
@@ -142,7 +137,6 @@ const UserSchema = new Schema<User>({
     type: String,
     enum: ['hirer', 'fixer'],
     required: true,
-    index: true,
     immutable: true // Lock role permanently once set
   },
   dateOfBirth: {
@@ -252,6 +246,8 @@ const UserSchema = new Schema<User>({
   refreshTokens: [{ type: String, select: false }],
   twoFactorEnabled: { type: Boolean, default: false },
   twoFactorSecret: { type: String, select: false },
+  passwordResetToken: { type: String, select: false },
+  passwordResetExpires: { type: Date, select: false },
   
   // Metadata with security
   metadata: {
@@ -273,11 +269,14 @@ const UserSchema = new Schema<User>({
 })
 
 // Indexes for performance and security
+UserSchema.index({ email: 1 }, { unique: true })
+UserSchema.index({ username: 1 }, { unique: true })  
+UserSchema.index({ phone: 1 }, { unique: true })
 UserSchema.index({ email: 1, isActive: 1 })
 UserSchema.index({ username: 1, isActive: 1 })
 UserSchema.index({ phone: 1, isActive: 1 })
 UserSchema.index({ role: 1, isActive: 1, isVerified: 1 })
-UserSchema.index({ 'location.coordinates.lat': 1, 'location.coordinates.lng': 1 }) // Geo index
+UserSchema.index({ 'location.coordinates': '2dsphere' }) // Geo index for location queries
 UserSchema.index({ 'location.city': 1, 'location.state': 1, role: 1 })
 UserSchema.index({ skills: 1, role: 1, isActive: 1 })
 UserSchema.index({ 'metadata.createdAt': 1 })
@@ -522,8 +521,7 @@ UserSchema.statics.searchBySkills = function(skills: string[], location?: { city
   return this.find(query).sort({ 'rating.average': -1, 'stats.jobsCompleted': -1 })
 }
 
-// Create compound geo index
-UserSchema.index({ 'location.coordinates': '2dsphere' })
+// Geo index automatically created by schema definition
 
 export interface UserDocument extends Omit<User, '_id'>, Document {
   comparePassword(candidatePassword: string): Promise<boolean>

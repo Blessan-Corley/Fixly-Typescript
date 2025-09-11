@@ -1,49 +1,96 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { UserCheck, Wrench, Mail, ArrowRight, ArrowLeft, CheckCircle, Eye, EyeOff, User, Phone, MapPin, Shield, Search, Chrome, Home, Loader2 } from 'lucide-react'
+import { UserCheck, Wrench, Mail, ArrowRight, ArrowLeft, CheckCircle, Eye, EyeOff, User, Phone, MapPin, Shield, Search, Chrome, Home, Loader2, AlertCircle, Info } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Modal, ConfirmModal } from '@/components/ui/modal'
-import { useToast } from '@/components/ui/toast-provider'
+import { toast } from 'sonner'
 import { GoogleMapsLocationPicker } from '@/components/ui/google-maps'
 import { SKILLS, SKILL_CATEGORIES, searchSkills, getSkillsByCategory } from '@/data/skills'
 import { useGoogleAuth } from '@/hooks/useGoogleAuth'
 
 export default function SignUpPage() {
   const router = useRouter()
-  const { addToast } = useToast()
+  const searchParams = useSearchParams()
+  // Using sonner toast instead of custom provider
   const { signInWithGoogle, isLoading: googleLoading } = useGoogleAuth()
   
-  const [currentStep, setCurrentStep] = useState(1)
-  const [selectedRole, setSelectedRole] = useState<'hirer' | 'fixer' | null>(null)
-  const [loginMethod, setLoginMethod] = useState<'google' | 'email' | null>(null)
+  // Check if user came from a failed Google sign-in attempt
+  const googleError = searchParams.get('error')
+  const googleEmail = searchParams.get('email')
+  const googleProvider = searchParams.get('provider')
+  
+  // Load saved progress from localStorage
+  const loadSavedProgress = () => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('fixly_signup_progress')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          console.warn('Failed to parse saved signup progress')
+        }
+      }
+    }
+    return null
+  }
+
+  const savedProgress = loadSavedProgress()
+  
+  const [currentStep, setCurrentStep] = useState(savedProgress?.currentStep || 1)
+  const [selectedRole, setSelectedRole] = useState<'hirer' | 'fixer' | null>(savedProgress?.selectedRole || null)
+  const [loginMethod, setLoginMethod] = useState<'google' | 'email' | null>(savedProgress?.loginMethod || null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [countdown, setCountdown] = useState(0)
   const [showAbandonModal, setShowAbandonModal] = useState(false)
-  const [termsAccepted, setTermsAccepted] = useState(false)
-  const [privacyAccepted, setPrivacyAccepted] = useState(false)
+  const [termsAccepted, setTermsAccepted] = useState(savedProgress?.termsAccepted || false)
+  const [privacyAccepted, setPrivacyAccepted] = useState(savedProgress?.privacyAccepted || false)
   const [returnUrl, setReturnUrl] = useState('')
   const [skillsSearch, setSkillsSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   
   const [formData, setFormData] = useState({
-    email: '',
+    email: savedProgress?.formData?.email || googleEmail || '',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    username: '',
-    phone: '',
-    address: '',
-    coordinates: { lat: 0, lng: 0 },
-    skills: [] as string[],
+    firstName: savedProgress?.formData?.firstName || '',
+    lastName: savedProgress?.formData?.lastName || '',
+    username: savedProgress?.formData?.username || '',
+    phone: savedProgress?.formData?.phone || '',
+    address: savedProgress?.formData?.address || '',
+    coordinates: savedProgress?.formData?.coordinates || { lat: 0, lng: 0 },
+    skills: savedProgress?.formData?.skills || [] as string[],
     otp: ['', '', '', '', '', '']
   })
+
+  // Save progress to localStorage
+  const saveProgress = () => {
+    if (typeof window !== 'undefined') {
+      const progressData = {
+        currentStep,
+        selectedRole,
+        loginMethod,
+        termsAccepted,
+        privacyAccepted,
+        formData: {
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          username: formData.username,
+          phone: formData.phone,
+          address: formData.address,
+          coordinates: formData.coordinates,
+          skills: formData.skills
+        }
+      }
+      localStorage.setItem('fixly_signup_progress', JSON.stringify(progressData))
+    }
+  }
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
 
@@ -76,6 +123,26 @@ export default function SignUpPage() {
     }
   }, [countdown])
 
+  // Save progress when important state changes
+  useEffect(() => {
+    if (currentStep > 1 || selectedRole || loginMethod) {
+      saveProgress()
+    }
+  }, [currentStep, selectedRole, loginMethod, formData, termsAccepted, privacyAccepted])
+
+  // Handle Google sign-in redirect for new users
+  useEffect(() => {
+    if (googleError === 'AccountNotFound' && googleProvider === 'google' && googleEmail) {
+      toast.error('Account Not Found', {
+        description: 'No account found with this Google email. Please complete signup to create your account.',
+        duration: 5000
+      })
+      
+      // Pre-select email login method since we need them to fill details manually
+      setLoginMethod('email')
+    }
+  }, [googleError, googleProvider, googleEmail])
+
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) return
     
@@ -96,6 +163,13 @@ export default function SignUpPage() {
 
   const nextStep = () => setCurrentStep(Math.min(currentStep + 1, steps.length))
   const prevStep = () => setCurrentStep(Math.max(currentStep - 1, 1))
+
+  // Clear progress when signup is completed
+  const clearProgress = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('fixly_signup_progress')
+    }
+  }
 
   // Validation functions
   const validatePassword = (password: string) => {
@@ -163,10 +237,8 @@ export default function SignUpPage() {
 
   const sendOTP = async () => {
     if (!formData.email) {
-      addToast({
-        type: 'error',
-        title: 'Email Required',
-        message: 'Please enter your email address first'
+      toast.error('Email Required', {
+        description: 'Please enter your email address first'
       })
       return
     }
@@ -193,18 +265,14 @@ export default function SignUpPage() {
       }
 
       setCountdown(60)
-      addToast({
-        type: 'success',
-        title: 'Verification code sent',
-        message: `We've sent a 6-digit code to ${formData.email}`
+      toast.success('Verification code sent', {
+        description: `We've sent a 6-digit code to ${formData.email}`
       })
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send code'
-      addToast({
-        type: 'error',
-        title: 'Failed to send code',
-        message: errorMessage
+      toast.error('Failed to send code', {
+        description: errorMessage
       })
       setErrors({ email: errorMessage })
     } finally {
@@ -214,10 +282,8 @@ export default function SignUpPage() {
 
   const handleGoogleSignup = async () => {
     if (!selectedRole) {
-      addToast({
-        type: 'error',
-        title: 'Role Required',
-        message: 'Please select a role first'
+      toast.error('Role Required', {
+        description: 'Please select a role first'
       })
       return
     }
@@ -227,17 +293,13 @@ export default function SignUpPage() {
         role: selectedRole,
         callbackUrl: '/dashboard',
         onSuccess: (data) => {
-          addToast({
-            type: 'success',
-            title: 'Google Sign-In Successful',
-            message: 'Redirecting to complete your profile...'
+          toast.success('Google Sign-In Successful', {
+            description: 'Redirecting to complete your profile...'
           })
         },
         onError: (error) => {
-          addToast({
-            type: 'error',
-            title: 'Google Sign-In Failed',
-            message: error
+          toast.error('Google Sign-In Failed', {
+            description: error
           })
         }
       })
@@ -250,10 +312,8 @@ export default function SignUpPage() {
     const otpCode = formData.otp.join('')
     
     if (otpCode.length !== 6) {
-      addToast({
-        type: 'error',
-        title: 'Invalid Code',
-        message: 'Please enter the complete 6-digit code'
+      toast.error('Invalid Code', {
+        description: 'Please enter the complete 6-digit code'
       })
       return
     }
@@ -280,20 +340,16 @@ export default function SignUpPage() {
         throw new Error(data.error || 'Verification failed')
       }
 
-      addToast({
-        type: 'success',
-        title: 'Email verified successfully',
-        message: 'You can now proceed to complete your profile'
+      toast.success('Email verified successfully', {
+        description: 'You can now proceed to complete your profile'
       })
       
       nextStep()
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Invalid verification code'
-      addToast({
-        type: 'error',
-        title: 'Verification Failed',
-        message: errorMessage
+      toast.error('Verification Failed', {
+        description: errorMessage
       })
       setErrors({ otp: errorMessage })
     } finally {
@@ -303,10 +359,8 @@ export default function SignUpPage() {
 
   const completeSignup = async () => {
     if (!termsAccepted || !privacyAccepted) {
-      addToast({
-        type: 'error',
-        title: 'Terms Required',
-        message: 'Please accept the terms of service and privacy policy'
+      toast.error('Terms Required', {
+        description: 'Please accept the terms of service and privacy policy'
       })
       return
     }
@@ -346,10 +400,8 @@ export default function SignUpPage() {
         throw new Error(data.error || 'Signup failed')
       }
 
-      addToast({
-        type: 'success',
-        title: 'Account created successfully!',
-        message: 'Welcome to Fixly! Redirecting to dashboard...'
+      toast.success('Account created successfully!', {
+        description: 'Welcome to Fixly! Redirecting to dashboard...'
       })
 
       // Store access token if provided
@@ -364,10 +416,8 @@ export default function SignUpPage() {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Signup failed'
-      addToast({
-        type: 'error',
-        title: 'Signup Failed',
-        message: errorMessage
+      toast.error('Signup Failed', {
+        description: errorMessage
       })
       setErrors({ submit: errorMessage })
     } finally {
@@ -376,19 +426,19 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <motion.div
         className="w-full max-w-2xl"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="glass-card p-8 rounded-2xl shadow-2xl" data-testid="signup-form">
+        <div className="glass-strong card-xl hover-lift-subtle" data-testid="signup-form">
           {/* Back to Home Button */}
           <div className="mb-6">
             <motion.button
               onClick={handleBackToHome}
-              className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors group"
+              className="flex items-center gap-2 text-secondary hover:text-primary transition-all duration-200 group hover-glow"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -397,35 +447,37 @@ export default function SignUpPage() {
             </motion.button>
           </div>
 
-          {/* Progress Bar */}
+          {/* Progress Bar - Responsive for 7 steps */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4 overflow-x-auto">
-              {steps.map((step, index) => (
-                <div key={step.id} className="flex items-center flex-shrink-0">
-                  <motion.div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                      currentStep >= step.id 
-                        ? 'bg-gradient-to-r from-primary to-accent text-white shadow-glow-primary' 
-                        : 'bg-surface-secondary text-text-muted'
-                    }`}
-                    animate={{
-                      scale: currentStep === step.id ? 1.2 : 1,
-                    }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {currentStep > step.id ? <CheckCircle className="w-4 h-4" /> : step.id}
-                  </motion.div>
-                  {index < steps.length - 1 && (
-                    <div className={`w-8 sm:w-12 h-1 mx-1 sm:mx-2 transition-colors duration-300 ${
-                      currentStep > step.id ? 'bg-gradient-to-r from-primary to-accent' : 'bg-border-subtle'
-                    }`} />
-                  )}
-                </div>
-              ))}
+            <div className="flex items-center justify-center mb-4 px-2">
+              <div className="flex items-center gap-1 sm:gap-2 max-w-full">
+                {steps.map((step, index) => (
+                  <div key={step.id} className="flex items-center">
+                    <motion.div
+                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-all duration-300 ${
+                        currentStep >= step.id 
+                          ? 'bg-gradient-to-r from-primary to-accent text-white shadow-glow-primary' 
+                          : 'bg-surface-secondary text-text-muted'
+                      }`}
+                      animate={{
+                        scale: currentStep === step.id ? 1.1 : 1,
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {currentStep > step.id ? <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" /> : step.id}
+                    </motion.div>
+                    {index < steps.length - 1 && (
+                      <div className={`w-4 sm:w-6 h-1 mx-0.5 sm:mx-1 transition-colors duration-300 ${
+                        currentStep > step.id ? 'bg-gradient-to-r from-primary to-accent' : 'bg-border-subtle'
+                      }`} />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="text-center">
-              <h2 className="text-xl font-bold text-text-primary">{steps[currentStep - 1].title}</h2>
-              <p className="text-sm text-text-secondary">{steps[currentStep - 1].desc}</p>
+              <h2 className="heading-lg text-primary">{steps[currentStep - 1].title}</h2>
+              <p className="text-sm text-secondary">{steps[currentStep - 1].desc}</p>
             </div>
           </div>
 
@@ -440,16 +492,36 @@ export default function SignUpPage() {
                 transition={{ duration: 0.3 }}
                 className="space-y-6"
               >
+                {/* Google User Notice */}
+                {googleError === 'AccountNotFound' && googleProvider === 'google' && googleEmail && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="alert alert-info border-l-4 border-l-blue-500 mb-6"
+                  >
+                    <div className="flex items-start gap-3">
+                      <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h3 className="font-semibold text-primary">Complete Your Account Setup</h3>
+                        <p className="text-sm text-secondary mt-1">
+                          We found your Google account ({googleEmail}) but no Fixly account exists yet. 
+                          Please complete the signup process to create your account with all required details.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
                 <div className="text-center mb-6">
-                  <h1 className="text-2xl font-bold gradient-text mb-2">Join Fixly Today</h1>
-                  <p className="text-text-secondary">Choose how you'd like to use our platform</p>
+                  <h1 className="heading-xl text-primary mb-2">Join Fixly Today</h1>
+                  <p className="text-secondary">Choose how you'd like to use our platform</p>
                 </div>
 
                 <motion.div
-                  className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                  className={`card-glass p-6 cursor-pointer transition-all duration-300 hover-lift-subtle ${
                     selectedRole === 'hirer' 
-                      ? 'border-primary bg-primary/10 shadow-glow-primary' 
-                      : 'border-border-subtle glass hover:shadow-glass-hover'
+                      ? 'border-primary bg-primary/5 shadow-glow-primary' 
+                      : 'border-subtle hover-glow'
                   }`}
                   onClick={() => setSelectedRole('hirer')}
                   whileHover={{ y: -2 }}
@@ -457,22 +529,22 @@ export default function SignUpPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      selectedRole === 'hirer' ? 'bg-primary text-white' : 'bg-primary/10 text-primary'
+                      selectedRole === 'hirer' ? 'bg-primary text-white' : 'bg-surface-elevated text-secondary'
                     }`}>
                       <UserCheck className="w-6 h-6" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-text-primary">I need help with tasks</h3>
-                      <p className="text-sm text-text-secondary">Find skilled professionals for your projects</p>
+                      <h3 className="font-semibold text-primary">I need help with tasks</h3>
+                      <p className="text-sm text-secondary">Find skilled professionals for your projects</p>
                     </div>
                   </div>
                 </motion.div>
 
                 <motion.div
-                  className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                  className={`card-glass p-6 cursor-pointer transition-all duration-300 hover-lift-subtle ${
                     selectedRole === 'fixer' 
-                      ? 'border-accent bg-accent/10 shadow-glow-accent' 
-                      : 'border-border-subtle glass hover:shadow-glass-hover'
+                      ? 'border-primary bg-primary/5 shadow-glow-primary' 
+                      : 'border-subtle hover-glow'
                   }`}
                   onClick={() => setSelectedRole('fixer')}
                   whileHover={{ y: -2 }}
@@ -480,13 +552,13 @@ export default function SignUpPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      selectedRole === 'fixer' ? 'bg-accent text-white' : 'bg-accent/10 text-accent'
+                      selectedRole === 'fixer' ? 'bg-primary text-white' : 'bg-surface-elevated text-secondary'
                     }`}>
                       <Wrench className="w-6 h-6" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-text-primary">I want to offer my skills</h3>
-                      <p className="text-sm text-text-secondary">Earn money helping others with your expertise</p>
+                      <h3 className="font-semibold text-primary">I want to offer my skills</h3>
+                      <p className="text-sm text-secondary">Earn money helping others with your expertise</p>
                     </div>
                   </div>
                 </motion.div>
@@ -494,13 +566,13 @@ export default function SignUpPage() {
                 <motion.button
                   onClick={nextStep}
                   disabled={!selectedRole}
-                  className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300 group ${
+                  className={`btn-base btn-primary btn-lg w-full group ${
                     selectedRole
-                      ? 'bg-gradient-to-r from-primary to-accent text-white hover:shadow-glow-primary'
-                      : 'bg-surface-secondary text-text-muted cursor-not-allowed'
+                      ? 'hover-glow'
+                      : 'opacity-50 cursor-not-allowed'
                   }`}
-                  whileHover={selectedRole ? { scale: 1.02, y: -2 } : {}}
-                  whileTap={selectedRole ? { scale: 0.98 } : {}}
+                  whileHover={selectedRole ? { scale: 1.01, y: -1 } : {}}
+                  whileTap={selectedRole ? { scale: 0.99 } : {}}
                 >
                   Continue
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -519,49 +591,23 @@ export default function SignUpPage() {
                 className="space-y-6"
               >
                 <div className="text-center mb-6">
-                  <h2 className="text-xl font-bold text-text-primary mb-2">Choose Sign Up Method</h2>
-                  <p className="text-text-secondary">How would you like to create your account?</p>
+                  <h2 className="heading-lg text-primary mb-2">Choose Sign Up Method</h2>
+                  <p className="text-secondary">How would you like to create your account?</p>
                 </div>
 
                 <motion.div
-                  className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
-                    loginMethod === 'google' 
-                      ? 'border-primary bg-primary/10 shadow-glow-primary' 
-                      : 'border-border-subtle glass hover:shadow-glass-hover'
-                  } ${googleLoading ? 'pointer-events-none opacity-50' : ''}`}
-                  onClick={() => setLoginMethod('google')}
-                  whileHover={!googleLoading ? { y: -2 } : {}}
-                  whileTap={!googleLoading ? { scale: 0.98 } : {}}
+                  className="p-6 rounded-xl border-2 transition-all duration-300 opacity-50 cursor-not-allowed border-border-subtle glass"
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      loginMethod === 'google' ? 'bg-primary text-white' : 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400'
-                    }`}>
-                      {googleLoading && loginMethod === 'google' ? (
-                        <Loader2 className="w-6 h-6 animate-spin" />
-                      ) : (
-                        <Chrome className="w-6 h-6" />
-                      )}
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-600">
+                      <Chrome className="w-6 h-6" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-text-primary">Continue with Google</h3>
-                      <p className="text-sm text-text-secondary">
-                        {googleLoading && loginMethod === 'google' 
-                          ? 'Connecting to Google...' 
-                          : 'Quick and secure - your email is automatically verified'
-                        }
+                      <h3 className="font-semibold text-gray-400 dark:text-gray-600">Continue with Google</h3>
+                      <p className="text-sm text-gray-400 dark:text-gray-600">
+                        Disabled - Please use email signup to provide all required details
                       </p>
                     </div>
-                    {loginMethod === 'google' && (
-                      <motion.div
-                        className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3, type: 'spring' }}
-                      >
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </motion.div>
-                    )}
                   </div>
                 </motion.div>
 
@@ -600,27 +646,18 @@ export default function SignUpPage() {
                     Back
                   </motion.button>
                   <motion.button
-                    onClick={loginMethod === 'google' ? handleGoogleSignup : nextStep}
-                    disabled={!loginMethod || googleLoading}
+                    onClick={nextStep}
+                    disabled={loginMethod !== 'email'}
                     className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 group ${
-                      loginMethod && !googleLoading
+                      loginMethod === 'email'
                         ? 'bg-gradient-to-r from-primary to-accent text-white hover:shadow-glow-primary'
                         : 'bg-surface-secondary text-text-muted cursor-not-allowed'
                     }`}
-                    whileHover={loginMethod && !googleLoading ? { scale: 1.02, y: -2 } : {}}
-                    whileTap={loginMethod && !googleLoading ? { scale: 0.98 } : {}}
+                    whileHover={loginMethod === 'email' ? { scale: 1.02, y: -2 } : {}}
+                    whileTap={loginMethod === 'email' ? { scale: 0.98 } : {}}
                   >
-                    {googleLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        {loginMethod === 'google' ? 'Signing in with Google...' : 'Loading...'}
-                      </>
-                    ) : (
-                      <>
-                        {loginMethod === 'google' ? 'Continue with Google' : 'Continue'}
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
+                    Continue
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </motion.button>
                 </div>
               </motion.div>
@@ -656,7 +693,7 @@ export default function SignUpPage() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full pl-10 pr-4 py-3 glass rounded-xl border border-border-subtle focus:border-primary focus:outline-none transition-colors"
+                        className="w-full pl-10 pr-4 py-3 glass rounded-xl border border-slate-300 focus:border-slate-500 focus:outline-none transition-colors"
                         placeholder="Enter your email"
                         autoFocus
                       />
@@ -690,8 +727,8 @@ export default function SignUpPage() {
                     disabled={countdown > 0}
                     className={`font-medium text-sm transition-colors ${
                       countdown > 0 
-                        ? 'text-text-muted cursor-not-allowed' 
-                        : 'text-primary hover:text-primary-600'
+                        ? 'text-slate-500 cursor-not-allowed' 
+                        : 'text-slate-700 hover:text-slate-900'
                     }`}
                   >
                     {countdown > 0 ? `Resend in ${countdown}s` : 'Resend Code'}
@@ -1277,17 +1314,17 @@ export default function SignUpPage() {
                 </motion.div>
 
                 <div>
-                  <h2 className="text-2xl font-bold gradient-text mb-4">Welcome to Fixly! 🎉</h2>
-                  <p className="text-text-secondary mb-6">
+                  <h2 className="text-2xl font-bold text-slate-900 mb-4">Welcome to Fixly! 🎉</h2>
+                  <p className="text-slate-600 mb-6">
                     Your account has been created successfully. You're ready to {selectedRole === 'fixer' ? 'start earning with your skills' : 'find amazing fixers for your needs'}!
                   </p>
                 </div>
 
                 <Link href="/dashboard">
                   <motion.button
-                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-primary to-accent text-white rounded-xl font-semibold hover:shadow-glow-primary transition-all duration-300 group"
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 hover:shadow-lg transition-all duration-200 group"
+                    whileHover={{ scale: 1.01, y: -1 }}
+                    whileTap={{ scale: 0.99 }}
                   >
                     Go to Dashboard
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -1301,7 +1338,7 @@ export default function SignUpPage() {
             <div className="text-center mt-8">
               <p className="text-text-secondary">
                 Already have an account?{' '}
-                <Link href="/auth/signin" className="text-primary hover:text-primary-600 font-medium transition-colors">
+                <Link href="/auth/signin" className="text-slate-700 hover:text-slate-900 font-medium transition-colors">
                   Sign in
                 </Link>
               </p>

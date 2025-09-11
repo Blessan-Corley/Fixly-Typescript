@@ -18,6 +18,14 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "**/*.config.js",
+      "**/*.config.mjs",
+      "jest.config.js",
+      "jest.setup.js",
+      "tailwind.config.js",
+      "postcss.config.mjs",
+      "src/types/global.d.ts",
+      "src/__tests__/**/*",
     ],
   },
   {
@@ -28,34 +36,36 @@ const eslintConfig = [
       },
     },
     rules: {
-      // 👉 Allow unused variables (e.g., during dev, placeholders)
+      // Disable unused variables as requested
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": "off",
 
-      // 👉 Allow console.log (remove in prod if needed, but don't error during dev)
+      // Disable console logs as requested
       "no-console": "off",
-
-      // 👉 Ignore quote style (single/double/backtick — no enforcement)  
-      "quotes": "off",
-      "@typescript-eslint/quotes": "off",
-
-      // 👉 Allow unescaped entities in JSX (common for apostrophes, quotes, etc)
       "react/no-unescaped-entities": "off",
-
-      // 👉 Still keep critical TypeScript and logic errors ON
-      "@typescript-eslint/no-explicit-any": "warn", // Warn, not error
-      "@typescript-eslint/ban-ts-comment": "warn",  // Warn if // @ts-ignore is used
+      
+      // TypeScript specific - more lenient as requested
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/ban-ts-comment": "warn",
       "@typescript-eslint/no-floating-promises": "off",
-      "@typescript-eslint/no-misused-promises": "error",
-      "@typescript-eslint/no-unsafe-assignment": "warn",
-      "@typescript-eslint/no-unsafe-member-access": "warn",
-      "@typescript-eslint/no-unsafe-call": "warn",
-      "@typescript-eslint/restrict-template-expressions": "warn",
-      "@typescript-eslint/no-var-requires": "error",
-
-      // Optional: You can turn these to "off" if they annoy you during prototyping
-      // "prefer-const": "off",
-      // "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/no-misused-promises": "warn", // Reduced from error
+      
+      // Disable unsafe operations warnings
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off", 
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/restrict-template-expressions": "off",
+      
+      // Import/require rules
+      "@typescript-eslint/no-var-requires": "warn",
+      "@typescript-eslint/no-require-imports": "warn",
+      
+      // React specific
+      "react-hooks/exhaustive-deps": "warn",
+      
+      // Code style - keep minimal
+      "prefer-const": "warn",
+      "no-var": "error", // This should be error - var is problematic
     },
   },
 ];

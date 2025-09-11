@@ -6,6 +6,7 @@ import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { CookieConsent } from '@/components/ui/cookie-consent'
+import { ScrollProgress } from '@/components/ui/scroll-progress'
 
 interface PageLayoutProps {
   children: React.ReactNode
@@ -279,6 +280,9 @@ const Footer = () => (
 export default function PageLayout({ children, title, description }: PageLayoutProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
+      {/* Scroll Progress Bar */}
+      <ScrollProgress height={3} />
+      
       {/* Animated background elements */}
       <div className="fixed inset-0 opacity-30 pointer-events-none">
         <div className="absolute top-10 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />

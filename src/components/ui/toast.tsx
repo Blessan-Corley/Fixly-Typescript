@@ -99,7 +99,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
         
         <motion.button
           onClick={() => onRemove(toast.id)}
-          className="flex-shrink-0 text-text-muted hover:text-text-primary transition-colors"
+          className="flex-shrink-0 text-slate-500 hover:text-slate-700 transition-colors"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >

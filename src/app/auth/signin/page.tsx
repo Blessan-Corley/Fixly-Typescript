@@ -6,13 +6,18 @@ import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn, getSession } from 'next-auth/react'
-import { useToast } from '@/components/ui/toast-provider'
+import { toast } from 'sonner'
 import { useGoogleAuth } from '@/hooks/useGoogleAuth'
+import { RadialSpinner } from '@/components/ui/loading'
 
-function SignInForm() {
+interface SignInFormProps {
+  callbackUrl: string
+  error: string | null
+}
+
+function SignInForm({ callbackUrl, error }: SignInFormProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const { addToast } = useToast()
+  // Using sonner toast instead of custom provider
   const { signInWithGoogle, isLoading: googleLoading } = useGoogleAuth()
   
   const [showPassword, setShowPassword] = useState(false)
@@ -23,9 +28,6 @@ function SignInForm() {
     identifier: '', // email or username
     password: ''
   })
-
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
-  const error = searchParams.get('error')
 
   // Handle OAuth errors
   useEffect(() => {
@@ -44,13 +46,11 @@ function SignInForm() {
         default:
           errorMessage = 'An error occurred during sign in'
       }
-      addToast({
-        type: 'error',
-        title: 'Sign In Failed',
-        message: errorMessage
+      toast.error('Sign In Failed', {
+        description: errorMessage
       })
     }
-  }, [error, addToast])
+  }, [error])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -89,16 +89,12 @@ function SignInForm() {
 
       if (result?.error) {
         setErrors({ submit: result.error })
-        addToast({
-          type: 'error',
-          title: 'Sign In Failed',
-          message: result.error
+        toast.error('Sign In Failed', {
+          description: result.error
         })
       } else if (result?.ok) {
-        addToast({
-          type: 'success',
-          title: 'Sign In Successful',
-          message: 'Welcome back! Redirecting...'
+        toast.success('Sign In Successful', {
+          description: 'Welcome back! Redirecting...'
         })
         
         // Get updated session
@@ -118,10 +114,8 @@ function SignInForm() {
       console.error('Sign in error:', error)
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
       setErrors({ submit: errorMessage })
-      addToast({
-        type: 'error',
-        title: 'Sign In Failed',
-        message: errorMessage
+      toast.error('Sign In Failed', {
+        description: errorMessage
       })
     } finally {
       setIsLoading(false)
@@ -136,40 +130,38 @@ function SignInForm() {
       })
     } catch (error) {
       console.error('Google sign in error:', error)
-      addToast({
-        type: 'error',
-        title: 'Google Sign In Failed',
-        message: 'Failed to sign in with Google'
+      toast.error('Google Sign In Failed', {
+        description: 'Failed to sign in with Google'
       })
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <motion.div
         className="w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.4 }}
       >
-        <div className="glass-card p-8 rounded-2xl shadow-2xl">
+        <div className="glass-strong card-xl hover-lift-subtle">
           <div className="text-center mb-8">
             <motion.h1 
-              className="text-3xl font-bold gradient-text mb-2"
+              className="heading-xl text-primary mb-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.1 }}
             >
               Welcome Back
             </motion.h1>
-            <p className="text-text-secondary">Sign in to your Fixly account</p>
+            <p className="text-secondary text-base">Sign in to your Fixly account</p>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-2">Email or Username</label>
+          <form className="space-y-spacing-lg" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="label">Email or Username</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-muted" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted" />
                 <input
                   type="text"
                   value={formData.identifier}
@@ -177,16 +169,16 @@ function SignInForm() {
                     setFormData({ ...formData, identifier: e.target.value })
                     if (errors.identifier) setErrors({ ...errors, identifier: '' })
                   }}
-                  className={`w-full pl-10 pr-4 py-3 glass rounded-xl border transition-colors ${
+                  className={`input input-lg pl-10 ${
                     errors.identifier 
-                      ? 'border-red-500 focus:border-red-500' 
-                      : 'border-border-subtle focus:border-primary'
-                  } focus:outline-none`}
+                      ? 'border-error focus:border-error' 
+                      : ''
+                  }`}
                   placeholder="Enter your email or username"
                   disabled={isLoading || googleLoading}
                 />
                 {errors.identifier && (
-                  <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                  <div className="form-error">
                     <AlertCircle className="w-4 h-4" />
                     <span>{errors.identifier}</span>
                   </div>
@@ -194,10 +186,10 @@ function SignInForm() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-2">Password</label>
+            <div className="form-group">
+              <label className="label">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-muted" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
@@ -205,25 +197,25 @@ function SignInForm() {
                     setFormData({ ...formData, password: e.target.value })
                     if (errors.password) setErrors({ ...errors, password: '' })
                   }}
-                  className={`w-full pl-10 pr-12 py-3 glass rounded-xl border transition-colors ${
+                  className={`input input-lg pl-10 pr-12 ${
                     errors.password 
-                      ? 'border-red-500 focus:border-red-500' 
-                      : 'border-border-subtle focus:border-primary'
-                  } focus:outline-none`}
+                      ? 'border-error focus:border-error' 
+                      : ''
+                  }`}
                   placeholder="Enter your password"
                   disabled={isLoading || googleLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-primary transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:text-secondary transition-all duration-200 hover-lift-subtle"
                   disabled={isLoading || googleLoading}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               {errors.password && (
-                <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                <div className="form-error">
                   <AlertCircle className="w-4 h-4" />
                   <span>{errors.password}</span>
                 </div>
@@ -231,30 +223,28 @@ function SignInForm() {
             </div>
 
             <div className="flex items-center justify-end">
-              <Link href="/auth/forgot-password" className="text-sm text-primary hover:text-primary-600 transition-colors">
+              <Link href="/auth/forgot-password" className="text-sm text-secondary hover:text-primary transition-all duration-200 hover-glow">
                 Forgot password?
               </Link>
             </div>
 
             {errors.submit && (
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-                <div className="flex items-center gap-2 text-red-800 dark:text-red-200 text-sm">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>{errors.submit}</span>
-                </div>
+              <div className="alert alert-error">
+                <AlertCircle className="w-4 h-4" />
+                <span>{errors.submit}</span>
               </div>
             )}
 
             <motion.button
               type="submit"
               disabled={isLoading || googleLoading || !formData.identifier || !formData.password}
-              className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300 group ${
+              className={`btn-base btn-primary btn-lg w-full group ${
                 isLoading || googleLoading || !formData.identifier || !formData.password
-                  ? 'bg-surface-secondary text-text-muted cursor-not-allowed'
-                  : 'bg-gradient-to-r from-primary to-accent text-white hover:shadow-glow-primary'
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover-glow'
               }`}
-              whileHover={!isLoading && !googleLoading && formData.identifier && formData.password ? { scale: 1.02, y: -2 } : {}}
-              whileTap={!isLoading && !googleLoading && formData.identifier && formData.password ? { scale: 0.98 } : {}}
+              whileHover={!isLoading && !googleLoading && formData.identifier && formData.password ? { scale: 1.01, y: -1 } : {}}
+              whileTap={!isLoading && !googleLoading && formData.identifier && formData.password ? { scale: 0.99 } : {}}
             >
               {isLoading ? (
                 <>
@@ -271,10 +261,10 @@ function SignInForm() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border-subtle" />
+                <div className="w-full border-t border-subtle" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-surface text-text-muted">Or continue with</span>
+                <span className="px-2 bg-background text-muted">Or continue with</span>
               </div>
             </div>
 
@@ -282,13 +272,13 @@ function SignInForm() {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isLoading || googleLoading}
-              className={`w-full flex items-center justify-center gap-3 px-6 py-3 glass rounded-xl border transition-all duration-300 ${
+              className={`btn-base btn-ghost btn-lg w-full ${
                 isLoading || googleLoading
-                  ? 'border-border-subtle cursor-not-allowed opacity-50'
-                  : 'border-border-subtle hover:shadow-glass-hover'
+                  ? 'cursor-not-allowed opacity-50'
+                  : 'hover-lift-subtle'
               }`}
-              whileHover={!isLoading && !googleLoading ? { scale: 1.02 } : {}}
-              whileTap={!isLoading && !googleLoading ? { scale: 0.98 } : {}}
+              whileHover={!isLoading && !googleLoading ? { scale: 1.01 } : {}}
+              whileTap={!isLoading && !googleLoading ? { scale: 0.99 } : {}}
             >
               {googleLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -300,9 +290,9 @@ function SignInForm() {
           </form>
 
           <div className="text-center mt-8">
-            <p className="text-text-secondary">
+            <p className="text-secondary">
               Don't have an account?{' '}
-              <Link href="/auth/signup" className="text-primary hover:text-primary-600 font-medium transition-colors">
+              <Link href="/auth/signup" className="text-primary hover:text-primary-600 font-medium transition-all duration-200 hover-glow">
                 Sign up
               </Link>
             </p>
@@ -313,21 +303,29 @@ function SignInForm() {
   )
 }
 
+function SignInWithSearchParams() {
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+  const error = searchParams.get('error')
+  
+  return <SignInForm callbackUrl={callbackUrl} error={error} />
+}
+
 export default function SignInPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          <div className="glass-card p-8 rounded-2xl shadow-2xl">
+          <div className="glass-strong card-xl">
             <div className="text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-              <p className="text-text-secondary">Loading...</p>
+              <RadialSpinner size={80} duration={2} className="mx-auto mb-4" />
+              <p className="text-secondary">Loading sign in...</p>
             </div>
           </div>
         </div>
       </div>
     }>
-      <SignInForm />
+      <SignInWithSearchParams />
     </Suspense>
   )
 }

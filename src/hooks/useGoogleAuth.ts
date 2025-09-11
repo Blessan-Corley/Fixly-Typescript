@@ -36,37 +36,29 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
   }, [])
 
   const signInWithGoogle = useCallback(async (options: GoogleAuthOptions) => {
-    const { role, onSuccess, onError, callbackUrl = '/auth/signup' } = options
+    const { role, onSuccess, onError, callbackUrl = '/dashboard' } = options
     
     setIsLoading(true)
     
     try {
-      // First, set the role preference cookie
-      const roleResponse = await fetch('/api/auth/google-signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ role, callbackUrl })
+      // Show loading message
+      addToast({
+        type: 'info',
+        title: 'Redirecting to Google',
+        message: 'Opening Google authentication...'
       })
       
-      if (!roleResponse.ok) {
-        const errorData = await roleResponse.json()
-        throw new Error(errorData.error || 'Failed to set role preference')
-      }
-      
-      // Initiate Google sign-in with role in state
+      // Initiate Google sign-in (existing users only)
+      // New users will be redirected to signup page
       const result = await signIn('google', {
         callbackUrl: callbackUrl,
         redirect: true // Let NextAuth handle the redirect
       })
       
-      // This won't execute if redirect is true, but kept for completeness
+      // This won't execute if redirect is true due to redirect, but kept for error handling
       if (result?.error) {
         throw new Error(result.error)
       }
-      
-      onSuccess?.(result)
       
     } catch (error) {
       console.error('Google sign-in error:', error)

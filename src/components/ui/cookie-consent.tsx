@@ -142,9 +142,9 @@ const CookieDetailsModal = ({ isOpen, onClose, onSave }: {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <Settings className="w-5 h-5 text-primary" />
+                    <Settings className="w-5 h-5 text-slate-900" />
                   </div>
-                  <h2 className="text-xl font-bold text-text-primary">Cookie Preferences</h2>
+                  <h2 className="text-xl font-bold text-text-slate-900">Cookie Preferences</h2>
                 </div>
                 <button
                   onClick={onClose}
@@ -165,7 +165,7 @@ const CookieDetailsModal = ({ isOpen, onClose, onSave }: {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-text-primary mb-1">
+                        <h3 className="font-semibold text-text-slate-900 mb-1">
                           {type.title}
                         </h3>
                         <p className="text-sm text-text-secondary">
@@ -237,10 +237,10 @@ export function CookieConsent({ onAccept, onDecline, onCustomize, className }: C
     // Check if user has already made a choice
     const consent = getCookieConsent()
     if (consent === null) {
-      // Small delay for better UX
+      // Delayed appearance for better UX - show after user has time to explore the site
       setTimeout(() => {
         setIsVisible(true)
-      }, 1000)
+      }, 5000) // 5 seconds delay for better user experience
     }
   }, [])
 
@@ -332,9 +332,9 @@ export function CookieConsent({ onAccept, onDecline, onCustomize, className }: C
                 transition={{ delay: 0.3, duration: 0.5 }}
               >
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                  <Cookie className="w-5 h-5 text-primary" />
+                  <Cookie className="w-5 h-5 text-slate-900" />
                 </div>
-                <h3 className="font-bold text-text-primary text-lg">We value your privacy</h3>
+                <h3 className="font-bold text-text-slate-900 text-lg">We value your privacy</h3>
               </motion.div>
 
               {/* Content */}
@@ -381,7 +381,7 @@ export function CookieConsent({ onAccept, onDecline, onCustomize, className }: C
                 
                 <button
                   onClick={handleCustomize}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-text-muted hover:text-primary border border-border-glass rounded-xl hover:shadow-glass-hover transition-all duration-300 group"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-text-muted hover:text-slate-900 border border-border-glass rounded-xl hover:shadow-glass-hover transition-all duration-300 group"
                 >
                   <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
                   Customize Preferences
@@ -398,7 +398,7 @@ export function CookieConsent({ onAccept, onDecline, onCustomize, className }: C
                 transition={{
                   duration: 2,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut" as const
                 }}
               />
               
@@ -411,7 +411,7 @@ export function CookieConsent({ onAccept, onDecline, onCustomize, className }: C
                 transition={{
                   duration: 3,
                   repeat: Infinity,
-                  ease: "easeInOut",
+                  ease: "easeInOut" as const,
                   delay: 1
                 }}
               />

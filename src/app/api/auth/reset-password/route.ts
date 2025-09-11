@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import connectToDatabase from '@/lib/database/connection'
-import User from '@/lib/models/User'
+import User from '@/lib/database/schemas/user'
 import { verifyPasswordResetToken } from '@/lib/auth/jwt'
 import { ApiResponse } from '@/types'
 
@@ -53,13 +53,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Update password and clear reset token fields
-    user.password = password
+    user.passwordHash = password
     user.passwordResetToken = undefined
     user.passwordResetExpires = undefined
     
-    // Clear any account locks and reset login attempts
-    user.loginAttempts = 0
-    user.lockUntil = undefined
+    // Clear any account locks and reset login attempts  
+    user.metadata.loginAttempts = 0
+    user.metadata.isLocked = false
+    user.metadata.lockUntil = undefined
     
     await user.save()
 

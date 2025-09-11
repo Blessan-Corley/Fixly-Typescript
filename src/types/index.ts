@@ -191,6 +191,8 @@ export interface User {
   refreshTokens: string[]
   twoFactorEnabled: boolean
   twoFactorSecret?: string
+  passwordResetToken?: string
+  passwordResetExpires?: Date
   
   // Metadata with security
   metadata: UserMetadata

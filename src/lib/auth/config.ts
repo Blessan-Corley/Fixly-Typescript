@@ -155,53 +155,15 @@ export const authOptions: NextAuthOptions = {
           const existingUser = await User.findOne({ email: user.email })
           
           if (!existingUser) {
-            // Create new user from Google profile
-            const googleProfile = profile as any
+            // NEW USERS: Do NOT create account automatically
+            // Store Google profile data in session for later use during manual signup
+            console.log(`New Google user attempted sign in: ${user.email}`)
             
-            // Get role from cookie (set during signup flow)
-            const roleFromCookie = credentials?.role || 'hirer' // Default fallback
-            
-            // Generate username from email
-            let baseUsername = user.email!.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '')
-            let username = baseUsername
-            
-            // Ensure username is unique
-            let counter = 1
-            while (await User.findOne({ username })) {
-              username = `${baseUsername}${counter}`
-              counter++
-            }
-            
-            const newUser = new User({
-              email: user.email,
-              username,
-              name: user.name,
-              avatar: user.image,
-              role: roleFromCookie,
-              passwordHash: 'google-oauth', // Placeholder for OAuth users
-              location: {
-                type: 'manual',
-                address: '',
-                coordinates: { lat: 0, lng: 0 },
-                city: 'Unknown',
-                state: 'Unknown',
-                stateCode: 'XX'
-              },
-              metadata: {
-                emailVerified: googleProfile.verified_email || false,
-                source: 'google',
-                profileCompleted: false // New users need to complete profile
-              }
-            })
-            
-            await newUser.save()
-            user.id = (newUser._id as any).toString()
-            user.role = newUser.role
-            user.username = newUser.username
-            user.emailVerified = googleProfile.verified_email || false
-            user.isActive = true
+            // Return false to prevent sign in and redirect to signup page
+            // The error will be handled in the redirect callback
+            return '/auth/signup?error=AccountNotFound&email=' + encodeURIComponent(user.email || '') + '&provider=google'
           } else {
-            // Update existing user
+            // EXISTING USERS: Allow sign in and update profile
             existingUser.name = user.name || existingUser.name
             existingUser.avatar = user.image || existingUser.avatar
             existingUser.metadata.lastLoginAt = new Date()
@@ -212,6 +174,8 @@ export const authOptions: NextAuthOptions = {
             user.username = existingUser.username
             user.emailVerified = existingUser.metadata?.emailVerified || false
             user.isActive = existingUser.isActive
+            
+            return true
           }
         }
         
@@ -238,7 +202,7 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/signin',
     error: '/auth/error',
     verifyRequest: '/auth/verify-request',
-    newUser: '/auth/age-verification' // Redirect new users to age verification
+    newUser: '/auth/signup' // Redirect new users to complete signup
   },
   
   events: {

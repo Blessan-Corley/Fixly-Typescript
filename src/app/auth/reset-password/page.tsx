@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Logo } from '@/components/ui/logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { RadialSpinner } from '@/components/ui/loading'
 import { ApiResponse } from '@/types'
 
 function ResetPasswordContent() {
@@ -109,7 +110,7 @@ function ResetPasswordContent() {
 
   if (!tokenValid) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center p-4">
         <div className="relative w-full max-w-md">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -139,7 +140,7 @@ function ResetPasswordContent() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center p-4">
         <div className="relative w-full max-w-md">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -166,11 +167,11 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center p-4">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-slate-200 rounded-full blur-3xl opacity-30" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200 rounded-full blur-3xl opacity-30" />
       </div>
 
       <div className="relative w-full max-w-md">
@@ -345,7 +346,7 @@ function ResetPasswordContent() {
             <motion.button
               type="submit"
               disabled={isLoading || !isPasswordValid || !passwordsMatch}
-              className="w-full py-3 px-4 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-xl shadow-glow-primary hover:shadow-glow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              className="w-full py-3 px-4 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               whileHover={!isLoading && isPasswordValid && passwordsMatch ? { scale: 1.02, y: -1 } : {}}
               whileTap={!isLoading && isPasswordValid && passwordsMatch ? { scale: 0.98 } : {}}
             >
@@ -378,8 +379,11 @@ function ResetPasswordContent() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center p-6">
+        <div className="text-center">
+          <RadialSpinner size={80} duration={2} className="mx-auto mb-4" />
+          <p className="text-text-secondary">Loading reset password...</p>
+        </div>
       </div>
     }>
       <ResetPasswordContent />

@@ -28,7 +28,7 @@
   --error-foreground: 0 0% 100%;
   
   --text-primary: 222 84% 4.9%;
-  --text-secondary: 215 16% 47%;
+  --text-secondary: 215 18% 40%;
   --text-muted: 215 16% 57%;
   --text-inverse: 0 0% 100%;
   
