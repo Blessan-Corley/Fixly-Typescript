@@ -18,16 +18,16 @@ export async function GET(request: NextRequest) {
     await connectToDatabase()
     
     // Check if user exists
-    const existingUser = await User.findOne({ email }).select('email role username location metadata')
+    const existingUser = await User.findOne({ email }).select('email role username homeAddress metadata')
     
     if (existingUser) {
       // User exists - return their profile completion status
       const isProfileComplete = !!(
         existingUser.username &&
-        existingUser.location &&
-        existingUser.location.coordinates &&
-        existingUser.location.coordinates.lat !== 0 &&
-        existingUser.location.coordinates.lng !== 0 &&
+        existingUser.homeAddress &&
+        existingUser.homeAddress.coordinates &&
+        existingUser.homeAddress.coordinates.lat !== 0 &&
+        existingUser.homeAddress.coordinates.lng !== 0 &&
         existingUser.metadata.emailVerified
       )
       
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
           role: existingUser.role,
           username: existingUser.username,
           isProfileComplete,
-          hasLocation: !!(existingUser.location && existingUser.location.coordinates && existingUser.location.coordinates.lat !== 0),
+          hasLocation: !!(existingUser.homeAddress && existingUser.homeAddress.coordinates && existingUser.homeAddress.coordinates.lat !== 0),
           emailVerified: existingUser.metadata?.emailVerified || false
         }
       })

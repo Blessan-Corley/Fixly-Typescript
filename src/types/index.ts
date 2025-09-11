@@ -126,6 +126,12 @@ export interface UserMetadata {
   lastLoginAttempt?: Date
   isLocked: boolean
   lockUntil?: Date
+  passwordResetToken?: string
+  passwordResetExpires?: Date
+  otpAttempts?: number
+  termsAcceptedAt?: Date
+  privacyAcceptedAt?: Date
+  refreshToken?: string
 }
 
 export interface User {
@@ -140,9 +146,21 @@ export interface User {
   bio?: string
   
   // Location with GPS support
-  location: LocationData
-  locationHistory?: LocationHistory[] // Last 3 locations
-  approximateLocation?: ApproximateLocation
+  homeAddress: LocationData // Permanent address from signup
+  currentLocation?: LocationData // GPS updated location
+  locationPermission: {
+    status: 'always' | 'session' | 'denied' | 'not_requested'
+    lastAsked?: Date
+    sessionExpiry?: Date
+    autoUpdateEnabled: boolean
+    lastAutoUpdate?: Date
+    updateInterval: number
+    denialCount: number
+  }
+  locationHistory?: LocationHistory[] // Last 10 locations
+  approximateLocation?: ApproximateLocation & {
+    source: 'current' | 'home'
+  }
   serviceRadius?: number // in km, for fixers
   
   // Skills (for fixers)

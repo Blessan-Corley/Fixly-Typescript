@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { UserCheck, Wrench, Mail, ArrowRight, ArrowLeft, CheckCircle, Eye, EyeOff, User, Phone, MapPin, Shield, Search, Chrome, Home, Loader2, AlertCircle, Info } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Modal, ConfirmModal } from '@/components/ui/modal'
@@ -10,17 +10,20 @@ import { toast } from 'sonner'
 import { GoogleMapsLocationPicker } from '@/components/ui/google-maps'
 import { SKILLS, SKILL_CATEGORIES, searchSkills, getSkillsByCategory } from '@/data/skills'
 import { useGoogleAuth } from '@/hooks/useGoogleAuth'
+import { useValidation } from '@/hooks/useValidation'
 
 export default function SignUpPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   // Using sonner toast instead of custom provider
   const { signInWithGoogle, isLoading: googleLoading } = useGoogleAuth()
+  const { validateUsername, validatePhone, validateEmail, isValidating } = useValidation()
   
-  // Check if user came from a failed Google sign-in attempt
-  const googleError = searchParams.get('error')
-  const googleEmail = searchParams.get('email')
+  // Check if user came from Google OAuth redirect
   const googleProvider = searchParams.get('provider')
+  const googleEmail = searchParams.get('email')
+  const googleName = searchParams.get('name')
+  const googleImage = searchParams.get('image')
   
   // Load saved progress from localStorage
   const loadSavedProgress = () => {
@@ -54,18 +57,34 @@ export default function SignUpPage() {
   const [skillsSearch, setSkillsSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   
+  // Validation state
+  const [validationResults, setValidationResults] = useState<{
+    username: { available: boolean; message: string } | null
+    phone: { available: boolean; message: string } | null
+    email: { available: boolean; message: string } | null
+  }>({
+    username: null,
+    phone: null,
+    email: null
+  })
+  
   const [formData, setFormData] = useState({
     email: savedProgress?.formData?.email || googleEmail || '',
     password: '',
     confirmPassword: '',
-    firstName: savedProgress?.formData?.firstName || '',
-    lastName: savedProgress?.formData?.lastName || '',
+    firstName: savedProgress?.formData?.firstName || (googleName?.split(' ')[0]) || '',
+    lastName: savedProgress?.formData?.lastName || (googleName?.split(' ').slice(1).join(' ')) || '',
     username: savedProgress?.formData?.username || '',
     phone: savedProgress?.formData?.phone || '',
     address: savedProgress?.formData?.address || '',
     coordinates: savedProgress?.formData?.coordinates || { lat: 0, lng: 0 },
+    city: savedProgress?.formData?.city || '',
+    state: savedProgress?.formData?.state || '',
+    stateCode: savedProgress?.formData?.stateCode || '',
+    pincode: savedProgress?.formData?.pincode || '',
     skills: savedProgress?.formData?.skills || [] as string[],
-    otp: ['', '', '', '', '', '']
+    otp: ['', '', '', '', '', ''],
+    avatar: savedProgress?.formData?.avatar || googleImage || ''
   })
 
   // Save progress to localStorage
@@ -85,6 +104,10 @@ export default function SignUpPage() {
           phone: formData.phone,
           address: formData.address,
           coordinates: formData.coordinates,
+          city: formData.city,
+          state: formData.state,
+          stateCode: formData.stateCode,
+          pincode: formData.pincode,
           skills: formData.skills
         }
       }
@@ -132,16 +155,19 @@ export default function SignUpPage() {
 
   // Handle Google sign-in redirect for new users
   useEffect(() => {
-    if (googleError === 'AccountNotFound' && googleProvider === 'google' && googleEmail) {
-      toast.error('Account Not Found', {
-        description: 'No account found with this Google email. Please complete signup to create your account.',
-        duration: 5000
+    if (googleProvider === 'google' && googleEmail) {
+      toast.success('Google Profile Loaded', {
+        description: 'Your Google profile has been pre-filled. Please complete the remaining fields.',
+        duration: 4000
       })
       
-      // Pre-select email login method since we need them to fill details manually
+      // Pre-select email login method since Google profile is auto-filled
       setLoginMethod('email')
+      
+      // Skip to email verification since Google email is already verified
+      // But still require them to complete all other fields
     }
-  }, [googleError, googleProvider, googleEmail])
+  }, [googleProvider, googleEmail])
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) return
@@ -180,18 +206,7 @@ export default function SignUpPage() {
     return ""
   }
 
-  const validatePhone = (phone: string) => {
-    const cleanPhone = phone.replace(/\D/g, '')
-    if (cleanPhone.length !== 10) return "Phone must be 10 digits"
-    if (!['6', '7', '8', '9'].includes(cleanPhone[0])) return "Phone must start with 6, 7, 8, or 9"
-    return ""
-  }
-
-  const validateUsername = (username: string) => {
-    if (username.length < 3) return "Username must be at least 3 characters"
-    if (!/^[a-z0-9_]+$/.test(username)) return "Username can only contain lowercase letters, numbers, and underscores"
-    return ""
-  }
+  // Note: validatePhone and validateUsername are provided by useValidation hook
 
   const getFilteredSkills = () => {
     let filteredSkills = SKILLS
@@ -216,6 +231,80 @@ export default function SignUpPage() {
       : [...formData.skills, skillId]
     setFormData({ ...formData, skills: newSkills })
   }
+
+  // Real-time validation handlers with debouncing
+  const handleUsernameValidation = useCallback(async (username: string) => {
+    if (!username) {
+      setValidationResults(prev => ({ ...prev, username: null }))
+      return
+    }
+
+    const result = await validateUsername(username)
+    setValidationResults(prev => ({ ...prev, username: result }))
+  }, [validateUsername])
+
+  const handlePhoneValidation = useCallback(async (phone: string) => {
+    if (!phone) {
+      setValidationResults(prev => ({ ...prev, phone: null }))
+      return
+    }
+
+    const result = await validatePhone(phone)
+    setValidationResults(prev => ({ ...prev, phone: result }))
+  }, [validatePhone])
+
+  const handleEmailValidation = useCallback(async (email: string) => {
+    if (!email) {
+      setValidationResults(prev => ({ ...prev, email: null }))
+      return
+    }
+
+    const result = await validateEmail(email)
+    setValidationResults(prev => ({ ...prev, email: result }))
+    
+    // Show redirect suggestion if user already exists
+    if (result.shouldRedirectToLogin) {
+      toast.error('Account Already Exists', {
+        description: result.message + ' Would you like to go to the login page?',
+        duration: 8000,
+        action: {
+          label: 'Go to Login',
+          onClick: () => router.push('/auth/signin')
+        }
+      })
+    }
+  }, [validateEmail, router])
+
+  // Debounced validation effects
+  useEffect(() => {
+    if (!formData.username) return
+    
+    const timeoutId = setTimeout(() => {
+      handleUsernameValidation(formData.username)
+    }, 800) // 800ms delay
+    
+    return () => clearTimeout(timeoutId)
+  }, [formData.username, handleUsernameValidation])
+
+  useEffect(() => {
+    if (!formData.phone) return
+    
+    const timeoutId = setTimeout(() => {
+      handlePhoneValidation(formData.phone)
+    }, 800) // 800ms delay
+    
+    return () => clearTimeout(timeoutId)
+  }, [formData.phone, handlePhoneValidation])
+
+  useEffect(() => {
+    if (!formData.email || googleProvider === 'google') return // Skip validation for Google pre-filled emails
+    
+    const timeoutId = setTimeout(() => {
+      handleEmailValidation(formData.email)
+    }, 800) // 800ms delay
+    
+    return () => clearTimeout(timeoutId)
+  }, [formData.email, handleEmailValidation, googleProvider])
 
   const handleBackToHome = () => {
     setShowAbandonModal(true)
@@ -379,7 +468,11 @@ export default function SignUpPage() {
         role: selectedRole,
         location: {
           address: formData.address,
-          coordinates: formData.coordinates
+          coordinates: formData.coordinates,
+          city: formData.city,
+          state: formData.state,
+          stateCode: formData.stateCode,
+          pincode: formData.pincode
         },
         skills: selectedRole === 'fixer' ? formData.skills : [],
         termsAccepted,
@@ -493,19 +586,18 @@ export default function SignUpPage() {
                 className="space-y-6"
               >
                 {/* Google User Notice */}
-                {googleError === 'AccountNotFound' && googleProvider === 'google' && googleEmail && (
+                {googleProvider === 'google' && googleEmail && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="alert alert-info border-l-4 border-l-blue-500 mb-6"
+                    className="alert alert-success border-l-4 border-l-green-500 mb-6"
                   >
                     <div className="flex items-start gap-3">
-                      <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
                       <div>
-                        <h3 className="font-semibold text-primary">Complete Your Account Setup</h3>
+                        <h3 className="font-semibold text-primary">Google Profile Pre-filled!</h3>
                         <p className="text-sm text-secondary mt-1">
-                          We found your Google account ({googleEmail}) but no Fixly account exists yet. 
-                          Please complete the signup process to create your account with all required details.
+                          We've auto-filled your email and name from Google. Please select your role and complete the remaining required fields.
                         </p>
                       </div>
                     </div>
@@ -596,18 +688,44 @@ export default function SignUpPage() {
                 </div>
 
                 <motion.div
-                  className="p-6 rounded-xl border-2 transition-all duration-300 opacity-50 cursor-not-allowed border-border-subtle glass"
+                  className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                    loginMethod === 'google' 
+                      ? 'border-primary bg-primary/10 shadow-glow-primary' 
+                      : 'border-border-subtle glass hover:shadow-glass-hover'
+                  } ${googleLoading ? 'pointer-events-none opacity-50' : ''}`}
+                  onClick={() => setLoginMethod('google')}
+                  whileHover={!googleLoading ? { y: -2 } : {}}
+                  whileTap={!googleLoading ? { scale: 0.98 } : {}}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-600">
-                      <Chrome className="w-6 h-6" />
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      loginMethod === 'google' ? 'bg-primary text-white' : 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400'
+                    }`}>
+                      {googleLoading && loginMethod === 'google' ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <Chrome className="w-6 h-6" />
+                      )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-400 dark:text-gray-600">Continue with Google</h3>
-                      <p className="text-sm text-gray-400 dark:text-gray-600">
-                        Disabled - Please use email signup to provide all required details
+                      <h3 className="font-semibold text-primary">Continue with Google</h3>
+                      <p className="text-sm text-secondary">
+                        {googleLoading && loginMethod === 'google' 
+                          ? 'Connecting to Google...' 
+                          : 'Quick start - auto-fills your profile, you complete the rest'
+                        }
                       </p>
                     </div>
+                    {loginMethod === 'google' && (
+                      <motion.div
+                        className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.3, type: 'spring' }}
+                      >
+                        <CheckCircle className="w-4 h-4 text-white" />
+                      </motion.div>
+                    )}
                   </div>
                 </motion.div>
 
@@ -646,18 +764,27 @@ export default function SignUpPage() {
                     Back
                   </motion.button>
                   <motion.button
-                    onClick={nextStep}
-                    disabled={loginMethod !== 'email'}
+                    onClick={loginMethod === 'google' ? handleGoogleSignup : nextStep}
+                    disabled={!loginMethod || googleLoading}
                     className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 group ${
-                      loginMethod === 'email'
+                      loginMethod && !googleLoading
                         ? 'bg-gradient-to-r from-primary to-accent text-white hover:shadow-glow-primary'
                         : 'bg-surface-secondary text-text-muted cursor-not-allowed'
                     }`}
-                    whileHover={loginMethod === 'email' ? { scale: 1.02, y: -2 } : {}}
-                    whileTap={loginMethod === 'email' ? { scale: 0.98 } : {}}
+                    whileHover={loginMethod && !googleLoading ? { scale: 1.02, y: -2 } : {}}
+                    whileTap={loginMethod && !googleLoading ? { scale: 0.98 } : {}}
                   >
-                    Continue
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    {googleLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        {loginMethod === 'google' ? 'Connecting to Google...' : 'Loading...'}
+                      </>
+                    ) : (
+                      <>
+                        {loginMethod === 'google' ? 'Continue with Google' : 'Continue'}
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
                   </motion.button>
                 </div>
               </motion.div>
@@ -692,13 +819,96 @@ export default function SignUpPage() {
                       <input
                         type="email"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full pl-10 pr-4 py-3 glass rounded-xl border border-slate-300 focus:border-slate-500 focus:outline-none transition-colors"
+                        onChange={(e) => {
+                          setFormData({ ...formData, email: e.target.value })
+                          // Clear validation result when user types
+                          if (validationResults.email) {
+                            setValidationResults(prev => ({ ...prev, email: null }))
+                          }
+                        }}
+                        className={`w-full pl-10 pr-12 py-3 glass rounded-xl border transition-all duration-300 ${
+                          validationResults.email 
+                            ? validationResults.email.available 
+                              ? 'border-success shadow-glow-success' 
+                              : 'border-error shadow-glow-error'
+                            : 'border-subtle focus:border-primary focus:shadow-glow-primary'
+                        } focus:outline-none`}
                         placeholder="Enter your email"
                         autoFocus
                       />
+                      {/* Real-time validation indicator with animation */}
+                      <motion.div 
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      >
+                        {isValidating ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-muted" />
+                        ) : validationResults.email ? (
+                          <motion.div
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                          >
+                            {validationResults.email.available ? (
+                              <CheckCircle className="w-4 h-4 text-success" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4 text-error" />
+                            )}
+                          </motion.div>
+                        ) : null}
+                      </motion.div>
                     </div>
-                    {errors.email && <p className="text-error text-sm mt-1">{errors.email}</p>}
+                    <AnimatePresence mode="wait">
+                      {validationResults.email && !validationResults.email.available ? (
+                        <motion.p 
+                          key="error"
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-error text-sm mt-1 flex items-center gap-2"
+                        >
+                          <AlertCircle className="w-3 h-3" />
+                          {validationResults.email.message}
+                        </motion.p>
+                      ) : validationResults.email && validationResults.email.available ? (
+                        <motion.p 
+                          key="success"
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-success text-sm mt-1 flex items-center gap-2"
+                        >
+                          <CheckCircle className="w-3 h-3" />
+                          {validationResults.email.message}
+                        </motion.p>
+                      ) : errors.email ? (
+                        <motion.p 
+                          key="server-error"
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-error text-sm mt-1 flex items-center gap-2"
+                        >
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.email}
+                        </motion.p>
+                      ) : (
+                        <motion.p 
+                          key="default"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="text-xs text-muted mt-1"
+                        >
+                          Enter a valid email address
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
 
@@ -727,8 +937,8 @@ export default function SignUpPage() {
                     disabled={countdown > 0}
                     className={`font-medium text-sm transition-colors ${
                       countdown > 0 
-                        ? 'text-slate-500 cursor-not-allowed' 
-                        : 'text-slate-700 hover:text-slate-900'
+                        ? 'text-muted cursor-not-allowed' 
+                        : 'text-secondary hover:text-primary'
                     }`}
                   >
                     {countdown > 0 ? `Resend in ${countdown}s` : 'Resend Code'}
@@ -820,51 +1030,175 @@ export default function SignUpPage() {
                 <div>
                   <label className="block text-sm font-medium text-text-secondary mb-2">Username</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-muted" />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted" />
                     <input
                       type="text"
                       value={formData.username}
                       onChange={(e) => {
                         const username = e.target.value.toLowerCase()
                         setFormData({ ...formData, username })
-                        setErrors({ ...errors, username: validateUsername(username) })
+                        // Clear validation result when user types
+                        if (validationResults.username) {
+                          setValidationResults(prev => ({ ...prev, username: null }))
+                        }
                       }}
-                      className={`w-full pl-10 pr-4 py-3 glass rounded-xl border transition-colors ${
-                        errors.username ? 'border-error' : 'border-border-subtle focus:border-primary'
+                      className={`w-full pl-10 pr-12 py-3 glass rounded-xl border transition-all duration-300 ${
+                        validationResults.username 
+                          ? validationResults.username.available 
+                            ? 'border-success shadow-glow-success' 
+                            : 'border-error shadow-glow-error'
+                          : 'border-subtle focus:border-primary focus:shadow-glow-primary'
                       } focus:outline-none`}
                       placeholder="johndoe_123"
                     />
+                    {/* Real-time validation indicator with animation */}
+                    <motion.div 
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    >
+                      {isValidating ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-muted" />
+                      ) : validationResults.username ? (
+                        <motion.div
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        >
+                          {validationResults.username.available ? (
+                            <CheckCircle className="w-4 h-4 text-success" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4 text-error" />
+                          )}
+                        </motion.div>
+                      ) : null}
+                    </motion.div>
                   </div>
-                  {errors.username ? (
-                    <p className="text-error text-sm mt-1">{errors.username}</p>
-                  ) : (
-                    <p className="text-xs text-text-muted mt-1">Lowercase letters, numbers, and underscores only</p>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {validationResults.username && !validationResults.username.available ? (
+                      <motion.p 
+                        key="error"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-error text-sm mt-1 flex items-center gap-2"
+                      >
+                        <AlertCircle className="w-3 h-3" />
+                        {validationResults.username.message}
+                      </motion.p>
+                    ) : validationResults.username && validationResults.username.available ? (
+                      <motion.p 
+                        key="success"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-success text-sm mt-1 flex items-center gap-2"
+                      >
+                        <CheckCircle className="w-3 h-3" />
+                        {validationResults.username.message}
+                      </motion.p>
+                    ) : (
+                      <motion.p 
+                        key="default"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="text-xs text-muted mt-1"
+                      >
+                        Lowercase letters, numbers, and underscores only
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-text-secondary mb-2">Phone Number</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-muted" />
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted" />
                     <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => {
                         const phone = e.target.value.replace(/\D/g, '').slice(0, 10)
                         setFormData({ ...formData, phone })
-                        setErrors({ ...errors, phone: validatePhone(phone) })
+                        // Clear validation result when user types
+                        if (validationResults.phone) {
+                          setValidationResults(prev => ({ ...prev, phone: null }))
+                        }
                       }}
-                      className={`w-full pl-10 pr-4 py-3 glass rounded-xl border transition-colors ${
-                        errors.phone ? 'border-error' : 'border-border-subtle focus:border-primary'
+                      className={`w-full pl-10 pr-12 py-3 glass rounded-xl border transition-all duration-300 ${
+                        validationResults.phone 
+                          ? validationResults.phone.available 
+                            ? 'border-success shadow-glow-success' 
+                            : 'border-error shadow-glow-error'
+                          : 'border-subtle focus:border-primary focus:shadow-glow-primary'
                       } focus:outline-none`}
                       placeholder="9876543210"
                     />
+                    {/* Real-time validation indicator with animation */}
+                    <motion.div 
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    >
+                      {isValidating ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-muted" />
+                      ) : validationResults.phone ? (
+                        <motion.div
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        >
+                          {validationResults.phone.available ? (
+                            <CheckCircle className="w-4 h-4 text-success" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4 text-error" />
+                          )}
+                        </motion.div>
+                      ) : null}
+                    </motion.div>
                   </div>
-                  {errors.phone ? (
-                    <p className="text-error text-sm mt-1">{errors.phone}</p>
-                  ) : (
-                    <p className="text-xs text-text-muted mt-1">10 digits starting with 6, 7, 8, or 9</p>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {validationResults.phone && !validationResults.phone.available ? (
+                      <motion.p 
+                        key="error"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-error text-sm mt-1 flex items-center gap-2"
+                      >
+                        <AlertCircle className="w-3 h-3" />
+                        {validationResults.phone.message}
+                      </motion.p>
+                    ) : validationResults.phone && validationResults.phone.available ? (
+                      <motion.p 
+                        key="success"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-success text-sm mt-1 flex items-center gap-2"
+                      >
+                        <CheckCircle className="w-3 h-3" />
+                        {validationResults.phone.message}
+                      </motion.p>
+                    ) : (
+                      <motion.p 
+                        key="default"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="text-xs text-muted mt-1"
+                      >
+                        10 digits starting with 6, 7, 8, or 9
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div>
@@ -1072,7 +1406,12 @@ export default function SignUpPage() {
                     setFormData({
                       ...formData,
                       address: location.address,
-                      coordinates: location.coordinates
+                      coordinates: location.coordinates,
+                      city: location.components?.city || '',
+                      state: location.components?.state || '',
+                      stateCode: location.components?.state ? 
+                        location.components.state.substring(0, 2).toUpperCase() : '',
+                      pincode: location.components?.postalCode || ''
                     })
                   }}
                   initialLocation={formData.address ? {
@@ -1314,15 +1653,15 @@ export default function SignUpPage() {
                 </motion.div>
 
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900 mb-4">Welcome to Fixly! 🎉</h2>
-                  <p className="text-slate-600 mb-6">
+                  <h2 className="heading-xl text-primary mb-4">Welcome to Fixly! 🎉</h2>
+                  <p className="text-secondary mb-6">
                     Your account has been created successfully. You're ready to {selectedRole === 'fixer' ? 'start earning with your skills' : 'find amazing fixers for your needs'}!
                   </p>
                 </div>
 
                 <Link href="/dashboard">
                   <motion.button
-                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 hover:shadow-lg transition-all duration-200 group"
+                    className="btn-base btn-primary btn-lg w-full flex items-center justify-center gap-3 hover-glow"
                     whileHover={{ scale: 1.01, y: -1 }}
                     whileTap={{ scale: 0.99 }}
                   >
@@ -1338,7 +1677,7 @@ export default function SignUpPage() {
             <div className="text-center mt-8">
               <p className="text-text-secondary">
                 Already have an account?{' '}
-                <Link href="/auth/signin" className="text-slate-700 hover:text-slate-900 font-medium transition-colors">
+                <Link href="/auth/signin" className="text-secondary hover:text-primary font-medium transition-colors">
                   Sign in
                 </Link>
               </p>

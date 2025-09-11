@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import connectToDatabase from '@/lib/database/connection'
 import User from '@/lib/database/schemas/user'
+import { sendWelcomeEmail } from '@/lib/services/email'
 import { z } from 'zod'
 
 const completeProfileSchema = z.object({
@@ -90,6 +91,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Send welcome email for Google OAuth users completing their profile
+    sendWelcomeEmail(updatedUser.email, updatedUser.name, role).catch(error => {
+      console.error('Failed to send welcome email:', error)
+      // Don't throw error - profile completion should succeed even if email fails
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Profile completed successfully',
@@ -100,7 +107,8 @@ export async function POST(request: NextRequest) {
         name: updatedUser.name,
         role: updatedUser.role,
         phone: updatedUser.phone,
-        location: updatedUser.location,
+        homeAddress: updatedUser.homeAddress,
+        currentLocation: updatedUser.currentLocation,
         skills: updatedUser.skills,
         avatar: updatedUser.avatar
       }

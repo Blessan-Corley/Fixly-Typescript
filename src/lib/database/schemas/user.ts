@@ -21,7 +21,13 @@ const UserMetadataSchema = new Schema<UserMetadata>({
   loginAttempts: { type: Number, default: 0 },
   lastLoginAttempt: { type: Date },
   isLocked: { type: Boolean, default: false },
-  lockUntil: { type: Date }
+  lockUntil: { type: Date },
+  passwordResetToken: { type: String, select: false }, // Sensitive data not selected by default
+  passwordResetExpires: { type: Date },
+  otpAttempts: { type: Number, default: 0 },
+  termsAcceptedAt: { type: Date },
+  privacyAcceptedAt: { type: Date },
+  refreshToken: { type: String, select: false } // Sensitive data not selected by default
 })
 
 const LocationDataSchema = new Schema<LocationData>({
@@ -167,22 +173,50 @@ const UserSchema = new Schema<User>({
     trim: true
   },
   
-  // Location with GPS support
-  location: {
+  // Home/Permanent Address (from signup)
+  homeAddress: {
     type: LocationDataSchema,
     required: true
   },
-  // Location History (last 3 locations)
+  
+  // Current Location (GPS updated)
+  currentLocation: {
+    type: LocationDataSchema,
+    required: false // May not be available if GPS denied
+  },
+  
+  // Location Permission Settings
+  locationPermission: {
+    status: {
+      type: String,
+      enum: ['always', 'session', 'denied', 'not_requested'],
+      default: 'not_requested'
+    },
+    lastAsked: { type: Date },
+    sessionExpiry: { type: Date }, // For 'session' permission
+    autoUpdateEnabled: { type: Boolean, default: false },
+    lastAutoUpdate: { type: Date },
+    updateInterval: { type: Number, default: 30 }, // minutes
+    denialCount: { type: Number, default: 0 }
+  },
+  
+  // Location History (last 10 locations with timestamps)
   locationHistory: [{
     type: LocationHistorySchema,
     default: []
   }],
-  // Approximate location for privacy
+  
+  // Approximate location for privacy (uses current or home as fallback)
   approximateLocation: {
     city: { type: String },
     state: { type: String },
     region: { type: String }, // North, South, East, West, Central India
-    lastUpdated: { type: Date, default: Date.now }
+    lastUpdated: { type: Date, default: Date.now },
+    source: { 
+      type: String, 
+      enum: ['current', 'home'], 
+      default: 'home' 
+    }
   },
   serviceRadius: {
     type: Number,

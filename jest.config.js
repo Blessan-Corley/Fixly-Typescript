@@ -18,6 +18,9 @@ const customJestConfig = {
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
   },
   testEnvironment: 'jest-environment-jsdom',
+  testEnvironmentOptions: {
+    customExportConditions: [''],
+  },
   testMatch: [
     '**/__tests__/**/*.(js|jsx|ts|tsx)',
     '**/?(*.)+(spec|test).(js|jsx|ts|tsx)',

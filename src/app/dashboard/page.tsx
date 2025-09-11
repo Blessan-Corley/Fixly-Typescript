@@ -46,8 +46,8 @@ export default function DashboardPage() {
       label: mockUser.role === 'fixer' ? 'Jobs Completed' : 'Jobs Posted',
       value: mockUser.role === 'fixer' ? '42' : '12',
       icon: TrendingUp,
-      color: 'text-slate-700',
-      bgColor: 'bg-slate-100'
+      color: 'text-secondary',
+      bgColor: 'bg-surface-elevated'
     },
     {
       label: 'Rating',
@@ -60,8 +60,8 @@ export default function DashboardPage() {
       label: mockUser.role === 'fixer' ? 'This Month' : 'Active Jobs',
       value: mockUser.role === 'fixer' ? '8' : '3',
       icon: Calendar,
-      color: 'text-slate-700',
-      bgColor: 'bg-slate-100'
+      color: 'text-secondary',
+      bgColor: 'bg-surface-elevated'
     },
     {
       label: 'Messages',
@@ -188,7 +188,7 @@ export default function DashboardPage() {
                     <div className={`text-lg font-bold ${stat.color}`}>
                       {stat.value}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-muted">
                       {stat.label}
                     </div>
                   </div>
@@ -207,33 +207,33 @@ export default function DashboardPage() {
             className="lg:col-span-2"
           >
             <div className="glass-card p-6 rounded-2xl">
-              <h2 className="text-xl font-bold text-slate-900 mb-4">
+              <h2 className="heading-lg text-primary mb-4">
                 Profile Overview
               </h2>
               
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-slate-600">Full Name</label>
-                    <p className="font-medium text-slate-900">{mockUser.name}</p>
+                    <label className="text-sm font-medium text-secondary">Full Name</label>
+                    <p className="font-medium text-primary">{mockUser.name}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-600">Username</label>
-                    <p className="font-medium text-slate-900">@{mockUser.username}</p>
+                    <label className="text-sm font-medium text-secondary">Username</label>
+                    <p className="font-medium text-primary">@{mockUser.username}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-600">Email</label>
-                    <p className="font-medium text-slate-900">{mockUser.email}</p>
+                    <label className="text-sm font-medium text-secondary">Email</label>
+                    <p className="font-medium text-primary">{mockUser.email}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-600">Phone</label>
-                    <p className="font-medium text-slate-900">{mockUser.mobile}</p>
+                    <label className="text-sm font-medium text-secondary">Phone</label>
+                    <p className="font-medium text-primary">{mockUser.mobile}</p>
                   </div>
                 </div>
 
                 {mockUser.role === 'fixer' && (
                   <div>
-                    <label className="text-sm font-medium text-slate-600 mb-2 block">Skills</label>
+                    <label className="text-sm font-medium text-secondary mb-2 block">Skills</label>
                     <div className="flex flex-wrap gap-2">
                       {mockUser.skills.map((skill) => (
                         <span 
@@ -248,7 +248,7 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-200">
+              <div className="mt-6 pt-4 border-t border-subtle">
                 <Link
                   href="/profile/edit"
                   className="btn-base btn-primary hover-glow"
@@ -278,17 +278,17 @@ export default function DashboardPage() {
                       activity.type === 'success' ? 'bg-green-500' : 'bg-blue-500'
                     }`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-900">{activity.text}</p>
-                      <p className="text-xs text-slate-500 mt-1">{activity.time}</p>
+                      <p className="text-sm text-primary">{activity.text}</p>
+                      <p className="text-xs text-muted mt-1">{activity.time}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-4 pt-4 border-t border-slate-200">
+              <div className="mt-4 pt-4 border-t border-subtle">
                 <Link
                   href="/activity"
-                  className="text-sm text-slate-700 hover:text-slate-900 font-medium transition-colors"
+                  className="text-sm text-secondary hover:text-primary font-medium transition-colors"
                 >
                   View all activity →
                 </Link>
@@ -305,7 +305,7 @@ export default function DashboardPage() {
           className="mt-8"
         >
           <div className="glass-card p-6 rounded-2xl">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">
+            <h2 className="heading-lg text-primary mb-4">
               Quick Actions
             </h2>
             
@@ -316,19 +316,19 @@ export default function DashboardPage() {
                     href="/jobs/browse"
                     className="flex flex-col items-center gap-2 p-4 rounded-xl glass hover:shadow-glass-hover transition-all text-center group"
                   >
-                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-                      <Wrench className="w-6 h-6 text-slate-600" />
+                    <div className="w-12 h-12 bg-surface-elevated rounded-xl flex items-center justify-center group-hover:bg-surface transition-colors">
+                      <Wrench className="w-6 h-6 text-secondary" />
                     </div>
-                    <span className="text-sm font-medium text-slate-900">Find Jobs</span>
+                    <span className="text-sm font-medium text-primary">Find Jobs</span>
                   </Link>
                   <Link
                     href="/profile/skills"
                     className="flex flex-col items-center gap-2 p-4 rounded-xl glass hover:shadow-glass-hover transition-all text-center group"
                   >
-                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-                      <Star className="w-6 h-6 text-slate-600" />
+                    <div className="w-12 h-12 bg-surface-elevated rounded-xl flex items-center justify-center group-hover:bg-surface transition-colors">
+                      <Star className="w-6 h-6 text-secondary" />
                     </div>
-                    <span className="text-sm font-medium text-slate-900">Update Skills</span>
+                    <span className="text-sm font-medium text-primary">Update Skills</span>
                   </Link>
                 </>
               ) : (
@@ -337,19 +337,19 @@ export default function DashboardPage() {
                     href="/jobs/post"
                     className="flex flex-col items-center gap-2 p-4 rounded-xl glass hover:shadow-glass-hover transition-all text-center group"
                   >
-                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-                      <UserCheck className="w-6 h-6 text-slate-600" />
+                    <div className="w-12 h-12 bg-surface-elevated rounded-xl flex items-center justify-center group-hover:bg-surface transition-colors">
+                      <UserCheck className="w-6 h-6 text-secondary" />
                     </div>
-                    <span className="text-sm font-medium text-slate-900">Post Job</span>
+                    <span className="text-sm font-medium text-primary">Post Job</span>
                   </Link>
                   <Link
                     href="/browse-fixers"
                     className="flex flex-col items-center gap-2 p-4 rounded-xl glass hover:shadow-glass-hover transition-all text-center group"
                   >
-                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-                      <User className="w-6 h-6 text-slate-600" />
+                    <div className="w-12 h-12 bg-surface-elevated rounded-xl flex items-center justify-center group-hover:bg-surface transition-colors">
+                      <User className="w-6 h-6 text-secondary" />
                     </div>
-                    <span className="text-sm font-medium text-slate-900">Find Fixers</span>
+                    <span className="text-sm font-medium text-primary">Find Fixers</span>
                   </Link>
                 </>
               )}
@@ -361,7 +361,7 @@ export default function DashboardPage() {
                 <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
                   <MessageCircle className="w-6 h-6 text-blue-500" />
                 </div>
-                <span className="text-sm font-medium text-slate-900">Messages</span>
+                <span className="text-sm font-medium text-primary">Messages</span>
               </Link>
               
               <Link
@@ -371,7 +371,7 @@ export default function DashboardPage() {
                 <div className="w-12 h-12 bg-gray-500/10 rounded-xl flex items-center justify-center group-hover:bg-gray-500/20 transition-colors">
                   <Settings className="w-6 h-6 text-gray-500" />
                 </div>
-                <span className="text-sm font-medium text-slate-900">Settings</span>
+                <span className="text-sm font-medium text-primary">Settings</span>
               </Link>
             </div>
           </div>
@@ -386,14 +386,14 @@ export default function DashboardPage() {
         >
           <div className="glass-card p-6 rounded-2xl border-l-4 border-l-slate-700">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Bell className="w-5 h-5 text-slate-600" />
+              <div className="w-10 h-10 bg-surface-elevated rounded-lg flex items-center justify-center flex-shrink-0">
+                <Bell className="w-5 h-5 text-secondary" />
               </div>
               <div>
-                <h3 className="font-semibold text-slate-900 mb-2">
+                <h3 className="font-semibold text-primary mb-2">
                   🎉 Signup Completed Successfully!
                 </h3>
-                <p className="text-slate-600 text-sm mb-4">
+                <p className="text-secondary text-sm mb-4">
                   This is a demo dashboard showing what your Fixly experience would look like. 
                   The signup flow with email verification, password setup, profile creation, 
                   skills selection, and location setup is fully functional with comprehensive 
@@ -402,19 +402,19 @@ export default function DashboardPage() {
                 <div className="flex flex-wrap gap-2">
                   <Link
                     href="/auth/signup"
-                    className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-1 bg-surface-elevated text-secondary rounded-lg text-sm font-medium hover:bg-surface transition-colors"
                   >
                     Try Signup Again
                   </Link>
                   <Link
                     href="/auth/signin"
-                    className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-1 bg-surface-elevated text-secondary rounded-lg text-sm font-medium hover:bg-surface transition-colors"
                   >
                     Test Login Page
                   </Link>
                   <Link
                     href="/"
-                    className="inline-flex items-center gap-2 px-3 py-1 glass border border-slate-200 rounded-lg text-sm font-medium hover:shadow-glass-hover transition-all"
+                    className="inline-flex items-center gap-2 px-3 py-1 glass border border-subtle rounded-lg text-sm font-medium hover:shadow-glass-hover transition-all"
                   >
                     <Home className="w-4 h-4" />
                     Back to Home

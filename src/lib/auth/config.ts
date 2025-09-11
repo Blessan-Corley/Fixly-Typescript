@@ -155,19 +155,23 @@ export const authOptions: NextAuthOptions = {
           const existingUser = await User.findOne({ email: user.email })
           
           if (!existingUser) {
-            // NEW USERS: Do NOT create account automatically
-            // Store Google profile data in session for later use during manual signup
-            console.log(`New Google user attempted sign in: ${user.email}`)
+            // NEW USERS: Redirect to signup with Google profile data
+            console.log(`New Google user - redirecting to signup: ${user.email}`)
             
-            // Return false to prevent sign in and redirect to signup page
-            // The error will be handled in the redirect callback
-            return '/auth/signup?error=AccountNotFound&email=' + encodeURIComponent(user.email || '') + '&provider=google'
+            // Store Google profile in temporary session/cookie for signup form auto-fill
+            // This will be handled in the signup page
+            return '/auth/signup?provider=google&email=' + encodeURIComponent(user.email || '') + 
+                   '&name=' + encodeURIComponent(user.name || '') + 
+                   '&image=' + encodeURIComponent(user.image || '')
           } else {
             // EXISTING USERS: Allow sign in and update profile
             existingUser.name = user.name || existingUser.name
             existingUser.avatar = user.image || existingUser.avatar
             existingUser.metadata.lastLoginAt = new Date()
             await existingUser.save()
+            
+            // Reset login attempts on successful login
+            await existingUser.resetLoginAttempts()
             
             user.id = (existingUser._id as any).toString()
             user.role = existingUser.role
